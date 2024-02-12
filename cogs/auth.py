@@ -29,9 +29,9 @@ class Authentication(commands.Cog):
     
     @app_commands.command(name="auth", description="Authorize with spotify")
     async def spotifyAuthorization(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True, thinking=True)
-        token = await requestAuthToken()
-        await getPlaybackDevices(token=token)
+        await interaction.response.defer(ephemeral=True)
+
+        await spotifyGetAuth()
         await interaction.followup.send("Done", ephemeral=True)
         return  
         
