@@ -31,8 +31,11 @@ class Authentication(commands.Cog):
     async def spotifyAuthorization(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
-        returnUrl = await spotifyGetAuth()
-        await interaction.followup.send(returnUrl, ephemeral=True)
+        view = await spotifyGetAuth()
+        try:
+            await interaction.followup.send(ephemeral=True, view=view)
+        except Exception as e:
+            print(e)
         return  
         
 async def setup(bot: PersistentViewBot):

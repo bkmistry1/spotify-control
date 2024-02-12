@@ -1,6 +1,7 @@
 import requests
 
 from env_variables import *
+from views import *
 
 async def requestAuthToken():
     url = "https://accounts.spotify.com/api/token"
@@ -32,7 +33,7 @@ async def spotifyGetAuth():
     print("here")
 
     state = "adkelxiwoeptquiw"
-    scope = "user-read-private user-read-email"
+    scope = "user-read-private%20user-read-email"
 
     params = {}
     params["response_type"] = "code"
@@ -43,4 +44,9 @@ async def spotifyGetAuth():
 
     url = "https://accounts.spotify.com/authorize?response_type=code&client_id="+clientId+"&scope="+scope+"&redirect_uri="+redirect_uri+"&state="+state+""
 
-    return url
+    authBtn = spotifyAuthBtn(url=url)
+    authView = authLinkView()
+
+    authView.add_item(authBtn)
+
+    return authView
