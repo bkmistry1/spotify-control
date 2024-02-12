@@ -22,5 +22,10 @@ class Authentication(commands.Cog):
         await ctx.send(f"Synced {len(fmt)} commands")
         return
     
+    @app_commands.command(name="auth", description="Authorize with spotify")
+    async def spotifyAuthorization(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True, thinking=True)
+        return  
+        
 async def setup(bot):
     await bot.add_cog(Authentication(bot), guilds=[discord.Object(id=1017931589340123268)])
