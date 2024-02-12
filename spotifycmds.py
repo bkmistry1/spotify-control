@@ -42,6 +42,5 @@ async def spotifyGetAuth():
     params["state"] = state
 
     url = "https://accounts.spotify.com/authorize?response_type=code&client_id="+clientId+"&scope="+scope+"&redirect_uri="+redirect_uri+"&state="+state+""
-    print(url)
 
-    return
+    return url
