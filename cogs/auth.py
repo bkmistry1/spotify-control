@@ -1,6 +1,11 @@
 import discord
+
 from discord import app_commands
 from discord.ext import commands
+from views import PersistentViewBot
+
+from spotifycmds import *
+from env_variables import *
 
 class Authentication(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -25,7 +30,10 @@ class Authentication(commands.Cog):
     @app_commands.command(name="auth", description="Authorize with spotify")
     async def spotifyAuthorization(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True, thinking=True)
+        token = await requestAuthToken()
+        await getPlaybackDevices(token=token)
+        await interaction.followup.send("Done", ephemeral=True)
         return  
         
-async def setup(bot):
-    await bot.add_cog(Authentication(bot), guilds=[discord.Object(id=1017931589340123268)])
+async def setup(bot: PersistentViewBot):
+    await bot.add_cog(Authentication(bot), guilds=[discord.Object(id=guildId)])

@@ -1,13 +1,6 @@
 import requests
-import os
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
-clientId = os.getenv("clientId")
-clientSecret = os.getenv("clientSecret")
-
+from env_variables import *
 
 async def requestAuthToken():
     url = "https://accounts.spotify.com/api/token"
@@ -19,7 +12,7 @@ async def requestAuthToken():
 
     response = requests.post(url=url, headers=headers, params=params)
     responseJson = response.json()
-    
+
     return responseJson["access_token"]
 
 async def getPlaybackDevices(token):
