@@ -4,6 +4,7 @@ import string
 
 from env_variables import *
 from views import *
+from data.mongoFunctions import *
 
 
 async def requestAuthToken():
@@ -30,13 +31,15 @@ async def getPlaybackDevices(token):
     print(responseJson)
     return
 
-async def spotifyGetAuth():
+async def spotifyGetAuth(interaction: discord.Interaction):
     redirect_uri = 'http://localhost:27695'
 
     n = 16
 
     state = ''.join(random.choices(string.ascii_lowercase + string.digits, k=n))
     scope = "user-read-private%20user-read-email"
+
+    await insertIntoCollection(colName="spotifyUsers", mydict={"userId": interaction.user.id, "userName": interaction.user.name, "state": state})
 
     params = {}
     params["response_type"] = "code"
