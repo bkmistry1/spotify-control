@@ -1,7 +1,10 @@
 import requests
+import random
+import string
 
 from env_variables import *
 from views import *
+
 
 async def requestAuthToken():
     url = "https://accounts.spotify.com/api/token"
@@ -30,9 +33,9 @@ async def getPlaybackDevices(token):
 async def spotifyGetAuth():
     redirect_uri = 'http://localhost:27695'
 
-    print("here")
+    n = 16
 
-    state = "adkelxiwoeptquiw"
+    state = ''.join(random.choices(string.ascii_lowercase + string.digits, k=n))
     scope = "user-read-private%20user-read-email"
 
     params = {}
