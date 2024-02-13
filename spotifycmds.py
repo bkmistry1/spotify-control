@@ -1,6 +1,7 @@
 import requests
 import random
 import string
+import base64
 
 from env_variables import *
 from views import *
@@ -56,3 +57,27 @@ async def spotifyGetAuth(interaction: discord.Interaction):
     authView.add_item(authBtn)
 
     return authView
+
+async def getUserAccessToken(interaction: discord.Interaction, code):
+
+    headers = {}
+    stringToEncode: str = clientId + ":" + clientSecret
+    encodedClientIdSecret = base64.b64encode(stringToEncode.encode("ascii"))
+    headers["Content-Type"] = "application/x-www-form-urlencoded"
+    headers["Authorization"] = "Basic " + encodedClientIdSecret.decode("ascii")
+
+    params = {}
+    params["code"] = code
+    params["redirect_uri"] = "http://localhost:27695"
+    params["grant_type"] = "authorization_code"
+
+    url = "https://accounts.spotify.com/api/token"
+    response = requests.post(url=url, params=params, headers=headers)
+
+    responseJson = response.json()
+
+    print(responseJson)
+
+    await insertIntoCollection(colName="spotifyTokens", mydict={"userId": interaction.user.id, "token": responseJson})
+
+    return

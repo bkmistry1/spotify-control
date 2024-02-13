@@ -1,4 +1,5 @@
 import discord
+import asyncio
 
 from discord import app_commands
 from discord.ext import commands
@@ -32,10 +33,18 @@ class Authentication(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         view = await spotifyGetAuth(interaction=interaction)
-        try:
-            await interaction.followup.send(ephemeral=True, view=view)
-        except Exception as e:
-            print(e)
+        await interaction.followup.send(ephemeral=True, view=view)
+
+        count = 0
+        while(count < 120):
+            codeCheck: dict = await findOneFromDb(colName="spotifyUsers", dict={"userId": interaction.user.id})
+            if("code" in codeCheck.keys()):
+                await getUserAccessToken(interaction=interaction, code=codeCheck["code"])
+                break
+            await asyncio.sleep(3)
+            count += 3
+
+
         return  
         
 async def setup(bot: PersistentViewBot):
