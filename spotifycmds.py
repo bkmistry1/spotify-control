@@ -44,7 +44,7 @@ async def spotifyGetAuth(interaction: discord.Interaction):
     n = 16
 
     state = ''.join(random.choices(string.ascii_lowercase + string.digits, k=n))
-    scope = "user-read-private%20user-read-email%20user-read-playback-state"
+    scope = "user-read-private%20user-read-email%20user-read-playback-state%20user-modify-playback-state"
 
     await insertIntoCollection(colName="spotifyUsers", mydict={"userId": interaction.user.id, "userName": interaction.user.name, "state": state})
 
@@ -88,8 +88,21 @@ async def getUserAccessToken(interaction: discord.Interaction, code):
 
     return
 
-async def addSongToQueue():
+async def addSongToQueue(interaction: discord.Interaction, songUri):
 
+    
+    token = await userToken(interaction=interaction)
+
+    params = {}
+    params["uri"] = songUri
+
+    headers = {}
+    headers["Authorization"] = "Bearer " + token
+    
+    url = "https://api.spotify.com/v1/me/player/queue"
+
+    response = requests.post(url=url, params=params, headers=headers)
+    
     return
 
 async def searchSong(interaction: discord.Interaction, searchTerm):
@@ -114,6 +127,9 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
     trackInfo = {}
     for song in listOfSongs:
         trackInfo[song["name"] + " by " + song["artists"][0]["name"]] = song["uri"]
+        await addSongToQueue(interaction=interaction, songUri=song["uri"])
+        break
+
 
     
     return trackInfo
