@@ -46,6 +46,16 @@ class Authentication(commands.Cog):
 
 
         return  
+    
+    @app_commands.command(name="playback_devices", description="Get list of playback devices")
+    async def getListOfPlaybackDevices(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        tokenInfo = await findOneFromDb(colName="spotifyTokens", dict={"userId": interaction.user.id})
+        token = tokenInfo["token"]["access_token"]
+        playbackDevices = await getPlaybackDevices(token=token)
+        print(playbackDevices)
+        await interaction.followup.send("Done", ephemeral=True)
+        return
         
 async def setup(bot: PersistentViewBot):
     await bot.add_cog(Authentication(bot), guilds=[discord.Object(id=guildId)])

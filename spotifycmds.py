@@ -38,7 +38,7 @@ async def spotifyGetAuth(interaction: discord.Interaction):
     n = 16
 
     state = ''.join(random.choices(string.ascii_lowercase + string.digits, k=n))
-    scope = "user-read-private%20user-read-email"
+    scope = "user-read-private%20user-read-email%20user-read-playback-state"
 
     await insertIntoCollection(colName="spotifyUsers", mydict={"userId": interaction.user.id, "userName": interaction.user.name, "state": state})
 
