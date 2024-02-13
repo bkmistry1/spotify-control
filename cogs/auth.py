@@ -31,7 +31,7 @@ class Authentication(commands.Cog):
     async def spotifyAuthorization(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
-        view = await spotifyGetAuth()
+        view = await spotifyGetAuth(interaction=interaction)
         try:
             await interaction.followup.send(ephemeral=True, view=view)
         except Exception as e:
