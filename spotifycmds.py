@@ -21,6 +21,12 @@ async def requestAuthToken():
 
     return responseJson["access_token"]
 
+async def userToken(interaction: discord.Interaction):
+    tokenInfo = await findOneFromDb(colName="spotifyTokens", dict={"userId": interaction.user.id})
+    token = tokenInfo["token"]["access_token"]
+
+    return token    
+
 async def getPlaybackDevices(token):
     url = "https://api.spotify.com/v1/me/player/devices"
     headers = {"Authorization": "Bearer " + token}
@@ -79,5 +85,33 @@ async def getUserAccessToken(interaction: discord.Interaction, code):
     print(responseJson)
 
     await insertIntoCollection(colName="spotifyTokens", mydict={"userId": interaction.user.id, "token": responseJson})
+
+    return
+
+async def addSongToQueue():
+
+    return
+
+async def searchSong(innteraction: discord.Interaction, searchTerm):
+
+    token = await userToken(interaction=Interaction)
+
+    params = {}
+    params["q"] = searchTerm
+    params["type"] = "track"
+    params["limit"] = 5
+
+    headers = {}
+    headers["Authorization"] = "Bearer " + token
+
+    url = "https://api.spotify.com/v1/search"
+
+    response = requests.get(url=url, params=params, headers=headers)
+    responseJson = response.json()
+
+    print(responseJson)
+    print(responseJson["items"])
+    print(responseJson["items"][0])
+
 
     return
