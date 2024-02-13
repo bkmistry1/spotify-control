@@ -92,9 +92,9 @@ async def addSongToQueue():
 
     return
 
-async def searchSong(innteraction: discord.Interaction, searchTerm):
+async def searchSong(interaction: discord.Interaction, searchTerm):
 
-    token = await userToken(interaction=Interaction)
+    token = await userToken(interaction=interaction)
 
     params = {}
     params["q"] = searchTerm
@@ -109,9 +109,11 @@ async def searchSong(innteraction: discord.Interaction, searchTerm):
     response = requests.get(url=url, params=params, headers=headers)
     responseJson = response.json()
 
-    print(responseJson)
-    print(responseJson["items"])
-    print(responseJson["items"][0])
+    listOfSongs = responseJson["tracks"]["items"]
 
+    trackInfo = {}
+    for song in listOfSongs:
+        trackInfo[song["name"] + " by " + song["artists"][0]["name"]] = song["uri"]
 
-    return
+    
+    return trackInfo

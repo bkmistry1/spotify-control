@@ -59,8 +59,12 @@ class Authentication(commands.Cog):
     @app_commands.command(name="add_song_to_queue", description="Add song to queue")
     async def addToQueue(self, interaction: discord.Interaction, search_term: str):
         await interaction.response.defer(ephemeral=True)
-        await searchSong(interaction=interaction, searchTerm=search_term)
-        await interaction.followup.send("Done", ephemeral=True)
+        trackDict = await searchSong(interaction=interaction, searchTerm=search_term)
+        trackNames = ""
+
+        for key in trackDict.keys():
+            trackNames += key + "\n"
+        await interaction.followup.send(trackNames, ephemeral=True)
         return
         
 async def setup(bot: PersistentViewBot):
