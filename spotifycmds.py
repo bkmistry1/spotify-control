@@ -129,7 +129,5 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
         trackInfo[song["name"] + " by " + song["artists"][0]["name"]] = song["uri"]
         await addSongToQueue(interaction=interaction, songUri=song["uri"])
         break
-
-
     
     return trackInfo
