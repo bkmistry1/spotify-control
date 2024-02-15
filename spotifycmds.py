@@ -84,7 +84,11 @@ async def getUserAccessToken(interaction: discord.Interaction, code):
 
     print(responseJson)
 
-    await insertIntoCollection(colName="spotifyTokens", mydict={"userId": interaction.user.id, "token": responseJson})
+    tokenCheck = await findOneFromDb(colName="spotifyTokens", dict={"userId": interaction.user.id})
+    if(tokenCheck is None):
+        await insertIntoCollection(colName="spotifyTokens", mydict={"userId": interaction.user.id, "token": responseJson})
+    else:
+        await findOneAndUpdate(colName="spotifyTokens", filter={"userId": interaction.user.id}, dict={"$set": {"token": responseJson}})
 
     return
 
