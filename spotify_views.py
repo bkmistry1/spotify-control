@@ -24,12 +24,13 @@ class songSelectList(Select):
 class songSelectButton(Button):
     def __init__(self, selectMenu):
         super().__init__(label="Submit", custom_id="songSelect_submit_button")
-
         self.selectMenu: songSelectList = selectMenu
+        
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
+        msg = await interaction.original_response()
         await addSongToQueue(interaction, self.selectMenu.selectedUri)
-        await interaction.followup.edit_message(content="Done", view=None)
+        await msg.edit(content="Done", view=None)
         return 
 
 
