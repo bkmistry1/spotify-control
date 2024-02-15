@@ -65,7 +65,7 @@ class Authentication(commands.Cog):
     
     @app_commands.command(name="host", description="Host a spotify queue")
     async def host(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer()
         await spotifyHost(interaction)
         return    
         

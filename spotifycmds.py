@@ -86,7 +86,20 @@ async def getUserAccessToken(interaction: discord.Interaction, code):
 
 async def searchSong(interaction: discord.Interaction, searchTerm):
 
-    token = await userToken(interaction=interaction)
+    # find the host queue host Id to get the auth token
+    channel = interaction.channel
+    
+    messages = [message async for message in channel.history(limit=100)]
+
+    spotifyUser = None
+    for message in messages:
+        if(message.author.name == "spotifyControl"):
+            embedTitle = message.embeds[0].title
+            hostUser = embedTitle.removeprefix("Spotify Host: ")
+            spotifyUser = await findOneFromDb(colName="spotifyUsers", dict={"userName": hostUser})
+            break
+
+    token = await userTokenById(spotifyUser["userId"])
 
     params = {}
     params["q"] = searchTerm
