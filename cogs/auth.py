@@ -62,6 +62,12 @@ class Authentication(commands.Cog):
         trackSelectionView = await searchSong(interaction=interaction, searchTerm=search_term)
         await interaction.followup.send(view=trackSelectionView, ephemeral=True)
         return
+    
+    @app_commands.command(name="host", description="Host a spotify queue")
+    async def host(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        await spotifyHost(interaction)
+        return    
         
 async def setup(bot: PersistentViewBot):
     await bot.add_cog(Authentication(bot), guilds=[discord.Object(id=guildId)])

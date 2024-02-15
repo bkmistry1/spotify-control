@@ -7,6 +7,7 @@ from env_variables import *
 from views import *
 from data.mongoFunctions import *
 from spotify_views import *
+from view_functions import *
 
 
 async def requestAuthToken():
@@ -20,13 +21,7 @@ async def requestAuthToken():
     response = requests.post(url=url, headers=headers, params=params)
     responseJson = response.json()
 
-    return responseJson["access_token"]
-
-async def userToken(interaction: discord.Interaction):
-    tokenInfo = await findOneFromDb(colName="spotifyTokens", dict={"userId": interaction.user.id})
-    token = tokenInfo["token"]["access_token"]
-
-    return token    
+    return responseJson["access_token"]  
 
 async def getPlaybackDevices(token):
     url = "https://api.spotify.com/v1/me/player/devices"
@@ -89,23 +84,6 @@ async def getUserAccessToken(interaction: discord.Interaction, code):
 
     return
 
-async def addSongToQueue(interaction: discord.Interaction, songUri):
-
-    
-    token = await userToken(interaction=interaction)
-
-    params = {}
-    params["uri"] = songUri
-
-    headers = {}
-    headers["Authorization"] = "Bearer " + token
-    
-    url = "https://api.spotify.com/v1/me/player/queue"
-
-    response = requests.post(url=url, params=params, headers=headers)
-    
-    return
-
 async def searchSong(interaction: discord.Interaction, searchTerm):
 
     token = await userToken(interaction=interaction)
@@ -144,5 +122,18 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
 
 async def createDiscordSelectOptions(label, value, description):
     selectOption = discord.SelectOption(label=label, value=value, description=description)
-    
     return selectOption
+
+async def spotifyHost(interaction: discord.Interaction):
+    hostView = spotifyHostView()
+    hostView.hostId = interaction.user.id
+
+    hostEmbed = discord.Embed(
+        title="Spotify Host: " + interaction.user.name,
+        description="Add Songs to the Host's Queue",
+        color=discord.Color.blue()
+    )
+
+    await interaction.followup.send(embed=hostEmbed, view=hostView)
+
+    return
