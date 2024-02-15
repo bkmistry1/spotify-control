@@ -12,10 +12,11 @@ class songSelectionView(View):
 
 
 class songSelectList(Select):
-    def __init__(self, options, trackInfo) -> None:
+    def __init__(self, options, trackInfo, spotifyUser) -> None:
         super().__init__(options=options, min_values=1, max_values=1)
         self.trackInfo = trackInfo
         self.selectedUri = None
+        self.spotifyUser = spotifyUser
 
     async def callback(self, interaction: discord.Interaction):
         self.selectedUri = self.trackInfo[self.values[0]]
@@ -30,7 +31,7 @@ class songSelectButton(Button):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
         msg = await interaction.original_response()
-        await addSongToQueue(interaction, self.selectMenu.selectedUri)
+        await addSongToQueue(self.selectMenu.spotifyUser, self.selectMenu.selectedUri)
         await msg.edit(content="Done", view=None)
         return 
 

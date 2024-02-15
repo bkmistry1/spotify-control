@@ -127,7 +127,7 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
         trackSelectOptions.append(trackSelectOption)
         # await addSongToQueue(interaction=interaction, songUri=song["uri"])
 
-    trackSelectOptionMenu = songSelectList(options=trackSelectOptions, trackInfo=trackInfo)
+    trackSelectOptionMenu = songSelectList(options=trackSelectOptions, trackInfo=trackInfo, spotifyUser=spotifyUser)
     trackSelectBtn = songSelectButton(selectMenu=trackSelectOptionMenu)
     trackSelectionView = songSelectionView()
     trackSelectionView.add_item(trackSelectOptionMenu)

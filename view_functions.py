@@ -3,9 +3,9 @@ import requests
 
 from data.mongoFunctions import *
 
-async def addSongToQueue(interaction: discord.Interaction, songUri):
+async def addSongToQueue(spotifyUser, songUri):
 
-    token = await userToken(interaction=interaction)
+    token = await userTokenById(userId=spotifyUser["userId"])
 
     params = {}
     params["uri"] = songUri
