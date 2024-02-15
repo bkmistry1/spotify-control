@@ -23,6 +23,34 @@ async def requestAuthToken():
 
     return responseJson["access_token"]  
 
+async def refreshToken(interaction: discord.Interaction):
+    spotifyTokenDoc = await findOneFromDb(colName="spotifyTokens", dict={"userId": interaction.user.id})
+
+    stringToEncode: str = clientId + ":" + clientSecret
+    encodedClientIdSecret = base64.b64encode(stringToEncode.encode("ascii"))
+
+    token = spotifyTokenDoc["token"]["access_token"]
+    refresh_token = spotifyTokenDoc["token"]["refresh_token"]
+
+    params = {}
+    params["grant_type"] = "refresh_token"
+    params["refresh_token"] = refresh_token
+
+    headers = {}
+    headers["content-type"] = "application/x-www-form-urlencoded"
+    headers["Authorization"] = "Basic " + encodedClientIdSecret.decode("ascii")
+
+    url = "https://accounts.spotify.com/api/token"
+
+    response = requests.post(url=url, headers=headers, params=params)
+    responseJson = response.json()
+
+    if(response.status_code == 200):
+        await deleteOneFromDb(colName="spotifyTokens", dict={"userId": interaction.user.id})
+        await insertIntoCollection(colName="spotifyTokens", mydict={"userId": interaction.user.id, "token": responseJson})
+
+    return
+
 async def getPlaybackDevices(token):
     url = "https://api.spotify.com/v1/me/player/devices"
     headers = {"Authorization": "Bearer " + token}

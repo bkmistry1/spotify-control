@@ -32,6 +32,11 @@ class Authentication(commands.Cog):
     async def spotifyAuthorization(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
+        authCheck = await findOneFromDb(colName="spotifyTokens", dict={"userId": interaction.user.id})
+        if(authCheck is not None):
+            await refreshToken(interaction=interaction)
+            return
+
         view = await spotifyGetAuth(interaction=interaction)
         await interaction.followup.send(ephemeral=True, view=view)
 
