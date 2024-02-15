@@ -6,6 +6,7 @@ import base64
 from env_variables import *
 from views import *
 from data.mongoFunctions import *
+from spotify_views import *
 
 
 async def requestAuthToken():
@@ -39,7 +40,7 @@ async def getPlaybackDevices(token):
     return
 
 async def spotifyGetAuth(interaction: discord.Interaction):
-    redirect_uri = 'http://localhost:27695'
+    redirect_uri = redirectUrl
 
     n = 16
 
@@ -74,7 +75,7 @@ async def getUserAccessToken(interaction: discord.Interaction, code):
 
     params = {}
     params["code"] = code
-    params["redirect_uri"] = "http://localhost:27695"
+    params["redirect_uri"] = redirectUrl
     params["grant_type"] = "authorization_code"
 
     url = "https://accounts.spotify.com/api/token"
@@ -109,6 +110,8 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
 
     token = await userToken(interaction=interaction)
 
+    print('oh')
+
     params = {}
     params["q"] = searchTerm
     params["type"] = "track"
@@ -125,9 +128,24 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
     listOfSongs = responseJson["tracks"]["items"]
 
     trackInfo = {}
+    trackSelectOptions = []
+    print("unchi")
     for song in listOfSongs:
         trackInfo[song["name"] + " by " + song["artists"][0]["name"]] = song["uri"]
-        await addSongToQueue(interaction=interaction, songUri=song["uri"])
-        break
+        trackSelectOption = await createDiscordSelectOptions(label=str(song["name"] + " by " + song["artists"][0]["name"]), value=str(song["name"] + " by " + song["artists"][0]["name"]), description=str(song["artists"][0]["name"]))
+        trackSelectOptions.append(trackSelectOption)
+        # await addSongToQueue(interaction=interaction, songUri=song["uri"])
     
-    return trackInfo
+    print(trackSelectOptions)
+    trackSelectOptionMenu = songSelectList(options=trackSelectOptions, trackInfo=trackInfo)
+    trackSelectionView = songSelectionView()
+    trackSelectionView.add_item(trackSelectOptionMenu)
+
+    print("here")
+
+    return trackSelectionView
+
+async def createDiscordSelectOptions(label, value, description):
+    selectOption = discord.SelectOption(label=label, value=value, description=description)
+    
+    return selectOption
