@@ -93,12 +93,14 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
 
     spotifyUser = None
     for message in messages:
-        if(message.author.name == "spotifyControl"):
+        if(message.author.name == "spotifyControl" and len(message.embeds)>0):
             embedTitle = message.embeds[0].title
             hostUser = embedTitle.removeprefix("Spotify Host: ")
             spotifyUser = await findOneFromDb(colName="spotifyUsers", dict={"userName": hostUser})
             break
 
+    if(spotifyUser is None):
+        await interaction.followup.send("No Queue was found", ephemeral=True)
     token = await userTokenById(spotifyUser["userId"])
 
     params = {}
