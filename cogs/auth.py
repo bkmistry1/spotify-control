@@ -35,6 +35,7 @@ class Authentication(commands.Cog):
         authCheck = await findOneFromDb(colName="spotifyTokens", dict={"userId": interaction.user.id})
         if(authCheck is not None):
             await refreshToken(interaction=interaction)
+            await interaction.followup.send("Authorization was successfull")
             return
 
         view = await spotifyGetAuth(interaction=interaction)
