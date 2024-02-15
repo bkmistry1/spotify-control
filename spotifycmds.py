@@ -42,7 +42,11 @@ async def spotifyGetAuth(interaction: discord.Interaction):
     state = ''.join(random.choices(string.ascii_lowercase + string.digits, k=n))
     scope = "user-read-private%20user-read-email%20user-read-playback-state%20user-modify-playback-state"
 
-    await insertIntoCollection(colName="spotifyUsers", mydict={"userId": interaction.user.id, "userName": interaction.user.name, "state": state})
+    userCheck = await findOneFromDb(colName="spotifyUsers", dict={"userId": interaction.user.id})
+    if(userCheck is None):
+        await insertIntoCollection(colName="spotifyUsers", mydict={"userId": interaction.user.id, "userName": interaction.user.name, "state": state})
+    else:
+        await findOneAndUpdate(colName="spotifyUsers", filter={"userId": interaction.user.id}, dict={"$set": {"state": state}})
 
     params = {}
     params["response_type"] = "code"
