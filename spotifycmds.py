@@ -68,7 +68,7 @@ async def spotifyGetAuth(interaction: discord.Interaction):
     n = 16
 
     state = ''.join(random.choices(string.ascii_lowercase + string.digits, k=n))
-    scope = "user-read-private%20user-read-email%20user-read-playback-state%20user-modify-playback-state"
+    scope = "user-read-private%20user-read-email%20user-read-playback-state%20user-modify-playback-state%20user-read-currently-playing"
 
     userCheck = await findOneFromDb(colName="spotifyUsers", dict={"userId": interaction.user.id})
     if(userCheck is None):
@@ -188,3 +188,18 @@ async def spotifyHost(interaction: discord.Interaction):
     await interaction.followup.send(embed=hostEmbed, view=hostView)
 
     return
+
+
+# create play function
+
+# create pause function
+
+# create next function
+
+# create previous function
+
+# create volume up function
+
+# create volume down function
+
+# create display queue function
