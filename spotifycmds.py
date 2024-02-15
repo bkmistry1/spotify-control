@@ -110,8 +110,6 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
 
     token = await userToken(interaction=interaction)
 
-    print('oh')
-
     params = {}
     params["q"] = searchTerm
     params["type"] = "track"
@@ -129,19 +127,18 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
 
     trackInfo = {}
     trackSelectOptions = []
-    print("unchi")
+
     for song in listOfSongs:
         trackInfo[song["name"] + " by " + song["artists"][0]["name"]] = song["uri"]
         trackSelectOption = await createDiscordSelectOptions(label=str(song["name"] + " by " + song["artists"][0]["name"]), value=str(song["name"] + " by " + song["artists"][0]["name"]), description=str(song["artists"][0]["name"]))
         trackSelectOptions.append(trackSelectOption)
         # await addSongToQueue(interaction=interaction, songUri=song["uri"])
-    
-    print(trackSelectOptions)
+
     trackSelectOptionMenu = songSelectList(options=trackSelectOptions, trackInfo=trackInfo)
+    trackSelectBtn = songSelectButton(selectMenu=trackSelectOptionMenu)
     trackSelectionView = songSelectionView()
     trackSelectionView.add_item(trackSelectOptionMenu)
-
-    print("here")
+    trackSelectionView.add_item(trackSelectBtn)
 
     return trackSelectionView
 
