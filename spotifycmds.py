@@ -51,7 +51,7 @@ async def refreshToken(interaction: discord.Interaction):
         await insertIntoCollection(colName="spotifyTokens", mydict={"userId": interaction.user.id, "token": responseJson})
         # await findOneAndUpdate(colName="spotifyTokens", filter={"userId": interaction.user.id}, dict={"$update": {"token": {"access_token": responseJson["access_token"]}}})
 
-    return
+    return response.status_code
 
 async def getPlaybackDevices(token):
     url = "https://api.spotify.com/v1/me/player/devices"
@@ -139,6 +139,7 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
 
     if(spotifyUser is None):
         await interaction.followup.send("No Queue was found", ephemeral=True)
+    
     token = await userTokenById(spotifyUser["userId"])
 
     params = {}
@@ -151,7 +152,22 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
 
     url = "https://api.spotify.com/v1/search"
 
-    response = requests.get(url=url, params=params, headers=headers)
+    responseCheck = False
+    while(responseCheck is not True):
+        response = requests.get(url=url, params=params, headers=headers)
+        if(response.status_code != 200):
+            print(response.reason, flush=True)
+            if(response.reason == "Unauthorized"):
+                refreshCheck = await refreshToken(interaction=interaction)
+                if(refreshCheck == 200):
+                    await interaction.followup.send("Spotify Token was expired. Reauthorized", ephemeral=True)
+                    responseCheck = True
+                else:
+                    await interaction.followup.send("Failed: Probably expired Token. Tell Bhavin plz.", ephemeral=True)
+                    return
+        else:
+            responseCheck = True
+    
     responseJson = response.json()
 
     listOfSongs = responseJson["tracks"]["items"]
@@ -171,7 +187,9 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
     trackSelectionView.add_item(trackSelectOptionMenu)
     trackSelectionView.add_item(trackSelectBtn)
 
-    return trackSelectionView
+    await interaction.followup.send(view=trackSelectionView, ephemeral=True)
+    
+    return 
 
 async def createDiscordSelectOptions(label, value, description):
     selectOption = discord.SelectOption(label=label, value=value, description=description)

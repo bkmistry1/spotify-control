@@ -65,8 +65,7 @@ class Authentication(commands.Cog):
     @app_commands.command(name="add_song_to_queue", description="Add song to queue")
     async def addToQueue(self, interaction: discord.Interaction, search_term: str):
         await interaction.response.defer(ephemeral=True)
-        trackSelectionView = await searchSong(interaction=interaction, searchTerm=search_term)
-        await interaction.followup.send(view=trackSelectionView, ephemeral=True)
+        await searchSong(interaction=interaction, searchTerm=search_term)        
         return
     
     @app_commands.command(name="host", description="Host a spotify queue")
