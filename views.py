@@ -1,6 +1,7 @@
+from typing import Any
 import discord
 from discord.ext import commands
-from discord.ui import View, Button
+from discord.ui import View, Button, Select
 
 from view_functions import *
 
@@ -25,3 +26,55 @@ class spotifyHostView(View):
     def __init__(self):
         super().__init__(timeout=None)
         self.hostId = None  
+
+    @discord.ui.button(label="Invite", custom_id="host_invite_btn")
+    async def inviteBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        
+        members: list[discord.Member] = interaction.guild.members
+        memberList = []
+        for member in members:
+            memberList.append(discord.SelectOption(label=member.name, value=member.id, description=""))
+
+        selectMenu = spotifyHostInviteSelection(placeholder="Select Members to Invite To Session", options=memberList, min=1, max=len(memberList))
+        
+        sessionView = spotifyHostSession()
+        sessionView.add_item(selectMenu)
+
+        await interaction.followup.send(view=sessionView, ephemeral=True)
+        return
+    
+    @discord.ui.button(label="End Session", custom_id="host_end_session_btn")
+    async def endSession(self, interaction: discord.Interaction, button: discord.ui.Button):
+        channel = interaction.channel
+        categoryChannel = channel.category
+        await channel.delete()
+        await categoryChannel.delete()
+        return    
+    
+
+class spotifyHostSession(View):
+    def __init__(self):
+        super().__init__()
+
+class spotifyHostInviteSelection(Select):
+    def __init__(self, placeholder, options, min, max):
+        super().__init__(placeholder=placeholder, options=options, min_values=min, max_values=max)
+
+    async def callback(self, interaction: discord.Interaction):
+        
+        await interaction.response.defer(ephemeral=True)
+        for selection in self.values:                        
+            channel = interaction.channel
+            categoryChannel = channel.category
+            guild = interaction.guild            
+            try:
+                member = guild.get_member(int(selection))
+                await categoryChannel.set_permissions(target=member, read_messages=True, send_messages=True)            
+                await channel.set_permissions(target=member, read_messages=True, send_messages=True)
+            except Exception as e:
+                print(e, flush=True)
+                return
+
+        await interaction.followup.send("Done", ephemeral=True)
+        return 
