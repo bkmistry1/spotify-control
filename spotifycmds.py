@@ -156,12 +156,12 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
     while(responseCheck is not True):
         response = requests.get(url=url, params=params, headers=headers)
         if(response.status_code != 200):
-            print(response.reason, flush=True)
             if(response.reason == "Unauthorized"):
                 refreshCheck = await refreshToken(interaction=interaction)
                 if(refreshCheck == 200):
                     await interaction.followup.send("Spotify Token was expired. Reauthorized", ephemeral=True)
-                    responseCheck = True
+                    headers["Authorization"] = "Bearer " + token
+                    token = await userTokenById(spotifyUser["userId"])
                 else:
                     await interaction.followup.send("Failed: Probably expired Token. Tell Bhavin plz.", ephemeral=True)
                     return
