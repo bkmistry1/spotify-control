@@ -44,10 +44,12 @@ async def refreshToken(interaction: discord.Interaction):
 
     response = requests.post(url=url, headers=headers, params=params)
     responseJson = response.json()
+    responseJson["refresh_token"] = refresh_token
 
     if(response.status_code == 200):
         await deleteOneFromDb(colName="spotifyTokens", dict={"userId": interaction.user.id})
         await insertIntoCollection(colName="spotifyTokens", mydict={"userId": interaction.user.id, "token": responseJson})
+        # await findOneAndUpdate(colName="spotifyTokens", filter={"userId": interaction.user.id}, dict={"$update": {"token": {"access_token": responseJson["access_token"]}}})
 
     return
 
