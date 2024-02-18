@@ -145,7 +145,7 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
     params = {}
     params["q"] = searchTerm
     params["type"] = "track"
-    params["limit"] = 5
+    params["limit"] = 24
 
     headers = {}
     headers["Authorization"] = "Bearer " + token
@@ -176,6 +176,8 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
     trackSelectOptions = []
 
     for song in listOfSongs:
+        if(song["name"] + " by " + song["artists"][0]["name"] in trackInfo.keys()):
+            continue
         trackInfo[song["name"] + " by " + song["artists"][0]["name"]] = song["uri"]
         trackSelectOption = await createDiscordSelectOptions(label=str(song["name"] + " by " + song["artists"][0]["name"]), value=str(song["name"] + " by " + song["artists"][0]["name"]), description=str(song["artists"][0]["name"]))
         trackSelectOptions.append(trackSelectOption)
@@ -187,7 +189,10 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
     trackSelectionView.add_item(trackSelectOptionMenu)
     trackSelectionView.add_item(trackSelectBtn)
 
-    await interaction.followup.send(view=trackSelectionView, ephemeral=True)
+    try:
+        await interaction.followup.send(view=trackSelectionView, ephemeral=True)
+    except Exception as e:
+        print(e)
     
     return 
 
@@ -206,9 +211,11 @@ async def spotifyHost(interaction: discord.Interaction):
     }
     
     newCategory = await guild.create_category(name=interaction.user.name + " Spotify Host", overwrites=overwrites)
+    await newCategory.set_permissions(target=interaction.user, read_messages=True, send_messages=True)
 
     # create new text channel
     channel = await newCategory.create_text_channel('host', overwrites=overwrites)
+    await channel.set_permissions(target=interaction.user, read_messages=True, send_messages=True)
     
     hostView = spotifyHostView()
     hostView.hostId = interaction.user.id
