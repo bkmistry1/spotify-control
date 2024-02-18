@@ -56,7 +56,7 @@ class Authentication(commands.Cog):
     @app_commands.command(name="playback_devices", description="Get list of playback devices")
     async def getListOfPlaybackDevices(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
-        token = await userToken(interaction)
+        token = await userTokenById(userId=interaction.user.id)
         playbackDevices = await getPlaybackDevices(token=token)
         print(playbackDevices)
         await interaction.followup.send("Done", ephemeral=True)

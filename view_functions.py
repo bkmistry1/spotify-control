@@ -20,10 +20,10 @@ async def addSongToQueue(spotifyUser, songUri):
     return        
 
 
-async def userToken(interaction: discord.Interaction):
-    tokenInfo = await findOneFromDb(colName="spotifyTokens", dict={"userId": interaction.user.id})
-    token = tokenInfo["token"]["access_token"]
-    return token  
+# async def userToken(interaction: discord.Interaction):
+#     tokenInfo = await findOneFromDb(colName="spotifyTokens", dict={"userId": interaction.user.id})
+#     token = tokenInfo["token"]["access_token"]
+#     return token  
 
 async def userTokenById(userId):
     tokenInfo = await findOneFromDb(colName="spotifyTokens", dict={"userId": userId})
