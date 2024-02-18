@@ -178,6 +178,20 @@ async def createDiscordSelectOptions(label, value, description):
     return selectOption
 
 async def spotifyHost(interaction: discord.Interaction):
+    
+    guild = interaction.guild
+
+    # create new category
+    overwrites = {
+        guild.default_role: discord.PermissionOverwrite(read_messages=False),
+        guild.me: discord.PermissionOverwrite(read_messages=True)
+    }
+    
+    newCategory = await guild.create_category(name=interaction.user.name + " Spotify Host", overwrites=overwrites)
+
+    # create new text channel
+    channel = await newCategory.create_text_channel('host', overwrites=overwrites)
+    
     hostView = spotifyHostView()
     hostView.hostId = interaction.user.id
 
@@ -187,7 +201,9 @@ async def spotifyHost(interaction: discord.Interaction):
         color=discord.Color.blue()
     )
 
-    await interaction.followup.send(embed=hostEmbed, view=hostView)
+    await channel.send(embed=hostEmbed, view=hostView)
+    # await interaction.followup.send(embed=hostEmbed, view=hostView)
+    await interaction.followup.send("Done", ephemeral=True)
 
     return
 
