@@ -230,6 +230,7 @@ async def spotifyHost(interaction: discord.Interaction):
     hostEmbed.add_field(name="Currently Playing", value="None", inline=False)
     hostEmbed.add_field(name="Progress", value="None", inline=True)
     hostEmbed.add_field(name="Length", value="None", inline=True)
+    hostEmbed.add_field(name="Queue", value="None", inline=False)
 
     hostSessionMsg = await channel.send(embed=hostEmbed, view=hostView)
 

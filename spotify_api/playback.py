@@ -45,7 +45,14 @@ async def getQueue(bot: PersistentViewBot):
             name="Length", 
             value=await convertTime(responseJson["item"]["duration_ms"]),
             inline=True,
-        )                
+        )  
+
+        await embedFieldSet(
+            embed=embed, 
+            name="Queue", 
+            value=await listeningQueue(userId=host["userId"]),
+            inline=False,
+        )                      
         
 
         await message.edit(embed=embed)
@@ -74,3 +81,29 @@ async def convertTime(time):
         seconds = "0" + str(seconds)
 
     return str(minutes) + ":" + str(seconds)
+
+
+async def listeningQueue(userId):
+
+
+    token = await userTokenById(userId=userId)
+
+    url = "https://api.spotify.com/v1/me/player/queue"
+
+    headers = {}
+
+    headers["Authorization"] = "Bearer " + token
+
+    response = requests.get(url=url, headers=headers)
+
+    responseJson = response.json()
+
+    queueString = ""
+    for index, track in enumerate(responseJson["queue"]):
+        queueString += str(index+1) + ". " + track["name"] + " by "
+        for artist in track["artists"]:
+            queueString += artist["name"] + ","
+        queueString = queueString[:-1]
+        queueString += "\n"
+
+    return queueString
