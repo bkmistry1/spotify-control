@@ -226,7 +226,21 @@ async def spotifyHost(interaction: discord.Interaction):
         color=discord.Color.blue()
     )
 
-    await channel.send(embed=hostEmbed, view=hostView)
+    hostEmbed.add_field(name="", value="", inline=False)
+    hostEmbed.add_field(name="Currently Playing", value="None", inline=False)
+    hostEmbed.add_field(name="Progress", value="None", inline=True)
+    hostEmbed.add_field(name="Length", value="None", inline=True)
+
+    hostSessionMsg = await channel.send(embed=hostEmbed, view=hostView)
+
+    await insertIntoCollection(
+        colName="currentHostSessions", 
+        mydict = {
+            "userId": interaction.user.id, 
+            "messageId": hostSessionMsg.id,
+            "channelId": hostSessionMsg.channel.id,
+        }
+    )
     # await interaction.followup.send(embed=hostEmbed, view=hostView)
     await interaction.followup.send("Done", ephemeral=True)
 

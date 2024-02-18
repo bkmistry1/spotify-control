@@ -50,6 +50,7 @@ class spotifyHostView(View):
         categoryChannel = channel.category
         await channel.delete()
         await categoryChannel.delete()
+        await deleteOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
         return    
     
 
