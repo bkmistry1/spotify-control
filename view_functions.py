@@ -87,3 +87,34 @@ async def getCurrentlyPlaying(userId):
     responseJson = response.json()
 
     return responseJson
+
+async def getYourPlaylists(userId):
+
+    token = await userTokenById(userId=userId)
+    spotifyUserDetails = await getSpotifyUserProfile(userId=userId)
+    spotifyUserId = spotifyUserDetails["id"]
+
+    url = "https://api.spotify.com/v1/users/"+ spotifyUserId +"/playlists"
+
+    headers = {}
+    
+    headers["Authorization"] = "Bearer " + token
+
+    response = requests.get(url=url, headers=headers)
+    responseJson = response.json()
+
+    return responseJson
+
+async def getSpotifyUserProfile(userId):
+    
+    token = await userTokenById(userId=userId)
+    url = "https://api.spotify.com/v1/me"
+
+    headers = {}
+    headers["Authorization"] = "Bearer " + token
+
+
+    response = requests.get(url=url, headers=headers)
+    responseJson = response.json()
+
+    return responseJson

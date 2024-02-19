@@ -70,7 +70,19 @@ async def spotifyGetAuth(interaction: discord.Interaction):
     n = 16
 
     state = ''.join(random.choices(string.ascii_lowercase + string.digits, k=n))
-    scope = "user-read-private%20user-read-email%20user-read-playback-state%20user-modify-playback-state%20user-read-currently-playing"
+    scopeParams = [
+        "user-read-private", "user-read-currently-playing", 
+        "user-modify-playback-state", "user-read-playback-state", 
+        "user-read-email", "playlist-read-collaborative", "playlist-read-private"
+    ]
+    
+    # scope = "user-read-private%20user-read-email%20user-read-playback-state%20user-modify-playback-state%20user-read-currently-playing"
+
+    scope = ""
+    for scopeParam in scopeParams:
+        scope += scopeParam +"%20"
+
+    scope = scope[:-3]
 
     userCheck = await findOneFromDb(colName="spotifyUsers", dict={"userId": interaction.user.id})
     if(userCheck is None):
@@ -283,3 +295,15 @@ async def labelValueCheck(labelValueString: str):
         return labelValueString[:subtractString]
     
     return labelValueString
+
+
+async def getPlaylists(interaction: discord.Interaction):
+
+    playlistInfo = await getYourPlaylists(userId=interaction.user.id)
+
+    for playlistInfo in playlistInfo["items"]:
+        print(playlistInfo["name"])
+
+    await interaction.followup.send("Done", ephemeral=True)
+
+    return

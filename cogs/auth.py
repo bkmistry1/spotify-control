@@ -73,6 +73,12 @@ class Authentication(commands.Cog):
         await interaction.response.defer(ephemeral=True)
         await spotifyHost(interaction)
         return    
+    
+    @app_commands.command(name="playlists", description="Display your playlists")
+    async def playlists(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        await getPlaylists(interaction)
+        return        
         
 async def setup(bot: PersistentViewBot):
     await bot.add_cog(Authentication(bot), guilds=[discord.Object(id=guildId)])
