@@ -59,7 +59,15 @@ class spotifyHostView(View):
         embed = interaction.message.embeds[0]
         await interaction.response.edit_message(embed=embed)        
         return   
-        
+
+    @discord.ui.button(custom_id="host_play_pause_button", emoji="⏯️", row=1)
+    async def playPauseTrack(self, interaction: discord.Interaction, button: discord.ui.Button):
+        host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
+        await playPause(userId=host["userId"])
+        embed = interaction.message.embeds[0]
+        await interaction.response.edit_message(embed=embed)
+        return
+            
     @discord.ui.button(custom_id="host_next_button", emoji="⏭️", row=1)
     async def nextTrack(self, interaction: discord.Interaction, button: discord.ui.Button):
         host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})

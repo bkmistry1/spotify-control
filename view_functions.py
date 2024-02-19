@@ -50,3 +50,40 @@ async def previous(userId):
 
     requests.post(url=url, headers=headers)
     return
+
+async def playPause(userId):
+    token = await userTokenById(userId=userId)
+
+    url = "https://api.spotify.com/v1/me/player/"
+    headers = {}
+    headers["Authorization"] = "Bearer " + token    
+
+    # determine if paused or playing
+    currentlyPlaying = await getCurrentlyPlaying(userId=userId)
+    if(currentlyPlaying["is_playing"] is False):
+        
+        # play call
+        url += "play"
+        headers["Content-Type"] = "application/json"
+
+    else:
+        # pause call
+        url += "pause"
+
+    requests.put(url=url, headers=headers)        
+    return
+
+async def getCurrentlyPlaying(userId):
+
+    token = await userTokenById(userId=userId)
+
+    headers = {}
+
+    headers["Authorization"] = "Bearer " + token
+
+    url = "https://api.spotify.com/v1/me/player/currently-playing"
+
+    response = requests.get(url=url, headers=headers)
+    responseJson = response.json()
+
+    return responseJson
