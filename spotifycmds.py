@@ -230,7 +230,8 @@ async def spotifyHost(interaction: discord.Interaction):
 
     hostEmbed = discord.Embed(
         title="Spotify Host: " + interaction.user.name,
-        description="Add Songs to the Host's Queue",
+        description="Add Songs to the Host's Queue \n \
+        use /add_song_to_queue command",
         color=discord.Color.blue()
     )
 
