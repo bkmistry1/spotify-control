@@ -176,10 +176,18 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
     trackSelectOptions = []
 
     for song in listOfSongs:
+
+        labelString = str(song["name"] + " by " + song["artists"][0]["name"])
+        valueString = str(song["name"] + " by " + song["artists"][0]["name"])
+        descriptionString = str(song["artists"][0]["name"])
+
+        labelString = await labelValueCheck(labelValueString=labelString)
+        valueString = await labelValueCheck(labelValueString=valueString)
+        
         if(song["name"] + " by " + song["artists"][0]["name"] in trackInfo.keys()):
             continue
-        trackInfo[song["name"] + " by " + song["artists"][0]["name"]] = song["uri"]
-        trackSelectOption = await createDiscordSelectOptions(label=str(song["name"] + " by " + song["artists"][0]["name"]), value=str(song["name"] + " by " + song["artists"][0]["name"]), description=str(song["artists"][0]["name"]))
+        trackInfo[labelString] = song["uri"]
+        trackSelectOption = await createDiscordSelectOptions(label=labelString, value=valueString, description=descriptionString)
         trackSelectOptions.append(trackSelectOption)
         # await addSongToQueue(interaction=interaction, songUri=song["uri"])
 
@@ -261,3 +269,12 @@ async def spotifyHost(interaction: discord.Interaction):
 # create volume down function
 
 # create display queue function
+
+
+async def labelValueCheck(labelValueString: str):
+
+    if(len(labelValueString) > 100):
+        subtractString = 99 - len(labelValueString)
+        return labelValueString[:subtractString]
+    
+    return labelValueString
