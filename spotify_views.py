@@ -1,5 +1,6 @@
 import discord
-import requests
+import asyncio
+
 
 from discord.ui import View, Select, Button
 from data.mongoFunctions import *
@@ -13,14 +14,19 @@ class songSelectionView(View):
 
 class songSelectList(Select):
     def __init__(self, options, trackInfo, spotifyUser) -> None:
-        super().__init__(options=options, min_values=1, max_values=1)
+        super().__init__(placeholder="Select at least 1", options=options, min_values=1, max_values=len(options))
         self.trackInfo = trackInfo
-        self.selectedUri = None
+        self.selectedUri = []
         self.spotifyUser = spotifyUser
 
     async def callback(self, interaction: discord.Interaction):
-        self.selectedUri = self.trackInfo[self.values[0]]
-        await interaction.response.edit_message(content="Selected: " + self.values[0])
+        songSelectionString = "\n"
+        self.selectedUri = []
+        for index, songSelected in enumerate(self.values):
+            # self.selectedUri = self.trackInfo[songSelected]
+            self.selectedUri.append(self.trackInfo[songSelected])
+            songSelectionString += str(index) + ". " + songSelected + "\n"
+        await interaction.response.edit_message(content="Selected: " + songSelectionString)
         return
     
 class songSelectButton(Button):
@@ -31,7 +37,9 @@ class songSelectButton(Button):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
         msg = await interaction.original_response()
-        await addSongToQueue(self.selectMenu.spotifyUser, self.selectMenu.selectedUri)
+        for songUri in self.selectMenu.selectedUri:
+            await addSongToQueue(spotifyUser=self.selectMenu.spotifyUser, songUri=songUri)
+            await asyncio.sleep(1)
         await msg.edit(content="Done", view=None)
         return 
 
