@@ -183,8 +183,8 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
 
         labelString = await labelValueCheck(labelValueString=labelString)
         valueString = await labelValueCheck(labelValueString=valueString)
-        
-        if(song["name"] + " by " + song["artists"][0]["name"] in trackInfo.keys()):
+
+        if(labelString in trackInfo.keys()):
             continue
         trackInfo[labelString] = song["uri"]
         trackSelectOption = await createDiscordSelectOptions(label=labelString, value=valueString, description=descriptionString)
