@@ -26,10 +26,16 @@ async def getQueue(bot: PersistentViewBot):
 
         embed = message.embeds[0]
 
+        currentlyPlayingArtists = " by "
+
+        for artist in responseJson["item"]["artists"]:
+            currentlyPlayingArtists += artist["name"] + ", "
+        currentlyPlayingArtists = currentlyPlayingArtists[:-2]
+
         await embedFieldSet(
             embed=embed, 
             name="Currently Playing", 
-            value=responseJson["item"]["name"],
+            value=responseJson["item"]["name"] + currentlyPlayingArtists,
             inline=False,
         )
 
