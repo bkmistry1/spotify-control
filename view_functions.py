@@ -16,7 +16,6 @@ async def addSongToQueue(spotifyUser, songUri):
     url = "https://api.spotify.com/v1/me/player/queue"
 
     response = requests.post(url=url, params=params, headers=headers)
-    print(response.reason)
     
     return        
 

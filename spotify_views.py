@@ -37,8 +37,12 @@ class songSelectButton(Button):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
         msg = await interaction.original_response()
+        songsAdded = 0
+        await msg.edit(content="Added: " + str(songsAdded), view=None)
         for songUri in self.selectMenu.selectedUri:
-            await addSongToQueue(spotifyUser=self.selectMenu.spotifyUser, songUri=songUri)
+            await addSongToQueue(spotifyUser=self.selectMenu.spotifyUser, songUri=songUri)            
+            songsAdded += 1
+            await msg.edit(content="Added: " + str(songsAdded), view=None)
             await asyncio.sleep(1)
         await msg.edit(content="Done", view=None)
         return 
