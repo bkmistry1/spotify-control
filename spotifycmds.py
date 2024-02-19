@@ -23,8 +23,8 @@ async def requestAuthToken():
 
     return responseJson["access_token"]  
 
-async def refreshToken(interaction: discord.Interaction):
-    spotifyTokenDoc = await findOneFromDb(colName="spotifyTokens", dict={"userId": interaction.user.id})
+async def refreshToken(userId):
+    spotifyTokenDoc = await findOneFromDb(colName="spotifyTokens", dict={"userId": userId})
 
     stringToEncode: str = clientId + ":" + clientSecret
     encodedClientIdSecret = base64.b64encode(stringToEncode.encode("ascii"))
@@ -47,8 +47,8 @@ async def refreshToken(interaction: discord.Interaction):
     responseJson["refresh_token"] = refresh_token
 
     if(response.status_code == 200):
-        await deleteOneFromDb(colName="spotifyTokens", dict={"userId": interaction.user.id})
-        await insertIntoCollection(colName="spotifyTokens", mydict={"userId": interaction.user.id, "token": responseJson})
+        await deleteOneFromDb(colName="spotifyTokens", dict={"userId": userId})
+        await insertIntoCollection(colName="spotifyTokens", mydict={"userId": userId, "token": responseJson})
         # await findOneAndUpdate(colName="spotifyTokens", filter={"userId": interaction.user.id}, dict={"$update": {"token": {"access_token": responseJson["access_token"]}}})
 
     return response.status_code
@@ -157,7 +157,7 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
         response = requests.get(url=url, params=params, headers=headers)
         if(response.status_code != 200):
             if(response.reason == "Unauthorized"):
-                refreshCheck = await refreshToken(interaction=interaction)
+                refreshCheck = await refreshToken(userId=interaction.user.id)
                 if(refreshCheck == 200):
                     await interaction.followup.send("Spotify Token was expired. Reauthorized", ephemeral=True)
                     headers["Authorization"] = "Bearer " + token
