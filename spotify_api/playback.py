@@ -3,9 +3,8 @@ import discord
 
 from spotifycmds import userTokenById, refreshToken
 from data.mongoFunctions import *
-from views import PersistentViewBot
 
-async def getQueue(bot: PersistentViewBot):
+async def getQueue(bot):
 
     allHosts = await findFromDb(colName="currentHostSessions", dict={})    
 
@@ -116,3 +115,25 @@ async def listeningQueue(userId):
         queueString += "\n"
 
     return queueString
+
+
+# async def next(userId):
+    
+#     token = await userTokenById(userId=userId)
+#     url = "https://api.spotify.com/v1/me/player/next"
+
+#     headers = {}
+#     headers["Authorization"] = "Bearer " + token
+
+#     requests.post(url=url, headers=headers)
+#     return
+
+# async def previous(userId):
+#     token = await userTokenById(userId=userId)
+#     url = "https://api.spotify.com/v1/me/player/previous"
+
+#     headers = {}
+#     headers["Authorization"] = "Bearer " + token
+
+#     requests.post(url=url, headers=headers)
+#     return

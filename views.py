@@ -1,4 +1,3 @@
-from typing import Any
 import discord
 from discord.ext import commands
 from discord.ui import View, Button, Select
@@ -27,7 +26,7 @@ class spotifyHostView(View):
         super().__init__(timeout=None)
         self.hostId = None  
 
-    @discord.ui.button(label="Invite", custom_id="host_invite_btn")
+    @discord.ui.button(label="Invite", custom_id="host_invite_btn", row=0)
     async def inviteBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         
@@ -44,7 +43,7 @@ class spotifyHostView(View):
         await interaction.followup.send(view=sessionView, ephemeral=True)
         return
     
-    @discord.ui.button(label="End Session", custom_id="host_end_session_btn")
+    @discord.ui.button(label="End Session", custom_id="host_end_session_btn", row=0)
     async def endSession(self, interaction: discord.Interaction, button: discord.ui.Button):
         channel = interaction.channel
         categoryChannel = channel.category
@@ -53,6 +52,21 @@ class spotifyHostView(View):
         await deleteOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
         return    
     
+    @discord.ui.button(custom_id="host_previous_button", emoji="⏮️", row=1)
+    async def previousTrack(self, interaction: discord.Interaction, button: discord.ui.Button):
+        host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
+        await previous(userId=host["userId"])        
+        embed = interaction.message.embeds[0]
+        await interaction.response.edit_message(embed=embed)        
+        return   
+        
+    @discord.ui.button(custom_id="host_next_button", emoji="⏭️", row=1)
+    async def nextTrack(self, interaction: discord.Interaction, button: discord.ui.Button):
+        host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
+        await next(userId=host["userId"])
+        embed = interaction.message.embeds[0]
+        await interaction.response.edit_message(embed=embed)
+        return
 
 class spotifyHostSession(View):
     def __init__(self):

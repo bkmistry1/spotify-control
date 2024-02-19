@@ -226,6 +226,7 @@ async def spotifyHost(interaction: discord.Interaction):
     await channel.set_permissions(target=interaction.user, read_messages=True, send_messages=True)
     
     hostView = spotifyHostView()
+    
     hostView.hostId = interaction.user.id
 
     hostEmbed = discord.Embed(
@@ -262,6 +263,9 @@ async def spotifyHost(interaction: discord.Interaction):
 # create pause function
 
 # create next function
+async def nextSong():
+
+    return
 
 # create previous function
 

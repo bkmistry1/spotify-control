@@ -29,3 +29,24 @@ async def userTokenById(userId):
     tokenInfo = await findOneFromDb(colName="spotifyTokens", dict={"userId": userId})
     token = tokenInfo["token"]["access_token"]
     return token
+
+async def next(userId):
+    
+    token = await userTokenById(userId=userId)
+    url = "https://api.spotify.com/v1/me/player/next"
+
+    headers = {}
+    headers["Authorization"] = "Bearer " + token
+
+    requests.post(url=url, headers=headers)
+    return
+
+async def previous(userId):
+    token = await userTokenById(userId=userId)
+    url = "https://api.spotify.com/v1/me/player/previous"
+
+    headers = {}
+    headers["Authorization"] = "Bearer " + token
+
+    requests.post(url=url, headers=headers)
+    return
