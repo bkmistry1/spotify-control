@@ -10,7 +10,7 @@ async def getQueue(bot):
 
     for host in allHosts:
         token = await userTokenById(userId=host["userId"])
-        channel: discord.TextChannel = bot.get_channel(host["channelId"])
+        channel: discord.TextChannel = await bot.fetch_channel(host["channelId"])
         message = await channel.fetch_message(host["messageId"])        
 
         headers = {}
@@ -23,8 +23,8 @@ async def getQueue(bot):
 
         if(response.status_code == 401):
             await refreshToken(host["userId"])
+            continue
         if(response.status_code == 204):
-            print("No Device currently playing", flush=True)
             continue
 
         responseJson = response.json()     
