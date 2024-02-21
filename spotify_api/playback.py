@@ -23,6 +23,9 @@ async def getQueue(bot):
 
         if(response.status_code == 401):
             await refreshToken(host["userId"])
+        if(response.status_code == 204):
+            print("No Device currently playing", flush=True)
+            continue
 
         responseJson = response.json()     
 
