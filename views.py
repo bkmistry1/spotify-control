@@ -26,9 +26,20 @@ class spotifyHostView(View):
         super().__init__(timeout=None)
         self.hostId = None  
 
+    async def ownerCheck(self, messageId, userId):
+        hostSession = await findOneFromDb(colName="currentHostSessions", dict={"messageId": messageId})
+        if(hostSession["userId"] != userId):
+            return False
+        else:
+            return True
+
     @discord.ui.button(label="Invite", custom_id="host_invite_btn", row=0)
     async def inviteBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
+
+        if(not await self.ownerCheck(messageId=interaction.message.id, userId=interaction.user.id)):
+            await interaction.followup.send("You are not allowed to use this command", ephemeral=True)
+            return
         
         members: list[discord.Member] = interaction.guild.members
         memberList = []
@@ -45,6 +56,11 @@ class spotifyHostView(View):
     
     @discord.ui.button(label="End Session", custom_id="host_end_session_btn", row=0)
     async def endSession(self, interaction: discord.Interaction, button: discord.ui.Button):
+        
+        if(not await self.ownerCheck(messageId=interaction.message.id, userId=interaction.user.id)):
+            await interaction.followup.send("You are not allowed to use this command", ephemeral=True)
+            return        
+        
         channel = interaction.channel
         categoryChannel = channel.category
         await channel.delete()
