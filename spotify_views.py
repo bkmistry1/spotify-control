@@ -23,7 +23,6 @@ class songSelectList(Select):
         songSelectionString = "\n"
         self.selectedUri = []
         for index, songSelected in enumerate(self.values):
-            # self.selectedUri = self.trackInfo[songSelected]
             self.selectedUri.append(self.trackInfo[songSelected])
             songSelectionString += str(index) + ". " + songSelected + "\n"
         await interaction.response.edit_message(content="Selected: " + songSelectionString)

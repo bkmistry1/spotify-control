@@ -49,7 +49,6 @@ async def refreshToken(userId):
     if(response.status_code == 200):
         await deleteOneFromDb(colName="spotifyTokens", dict={"userId": userId})
         await insertIntoCollection(colName="spotifyTokens", mydict={"userId": userId, "token": responseJson})
-        # await findOneAndUpdate(colName="spotifyTokens", filter={"userId": interaction.user.id}, dict={"$update": {"token": {"access_token": responseJson["access_token"]}}})
 
     return response.status_code
 
@@ -75,8 +74,6 @@ async def spotifyGetAuth(interaction: discord.Interaction):
         "user-modify-playback-state", "user-read-playback-state", 
         "user-read-email", "playlist-read-collaborative", "playlist-read-private"
     ]
-    
-    # scope = "user-read-private%20user-read-email%20user-read-playback-state%20user-modify-playback-state%20user-read-currently-playing"
 
     scope = ""
     for scopeParam in scopeParams:
@@ -201,7 +198,6 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
         trackInfo[labelString] = song["uri"]
         trackSelectOption = await createDiscordSelectOptions(label=labelString, value=valueString, description=descriptionString)
         trackSelectOptions.append(trackSelectOption)
-        # await addSongToQueue(interaction=interaction, songUri=song["uri"])
 
     trackSelectOptionMenu = songSelectList(options=trackSelectOptions, trackInfo=trackInfo, spotifyUser=spotifyUser)
     trackSelectBtn = songSelectButton(selectMenu=trackSelectOptionMenu)
@@ -264,29 +260,9 @@ async def spotifyHost(interaction: discord.Interaction):
             "channelId": hostSessionMsg.channel.id,
         }
     )
-    # await interaction.followup.send(embed=hostEmbed, view=hostView)
     await interaction.followup.send("Done", ephemeral=True)
 
     return
-
-
-# create play function
-
-# create pause function
-
-# create next function
-async def nextSong():
-
-    return
-
-# create previous function
-
-# create volume up function
-
-# create volume down function
-
-# create display queue function
-
 
 async def labelValueCheck(labelValueString: str):
 
