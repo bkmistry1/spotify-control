@@ -259,6 +259,7 @@ async def spotifyHost(interaction: discord.Interaction):
             "userId": interaction.user.id, 
             "messageId": hostSessionMsg.id,
             "channelId": hostSessionMsg.channel.id,
+            "userQueue": [],
         }
     )
     await interaction.followup.send("Done", ephemeral=True)
