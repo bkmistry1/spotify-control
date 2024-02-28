@@ -51,7 +51,7 @@ class songSelectButton(Button):
                     "$push": {
                         "userQueue": {
                             "songName": song,
-                            "addedBy": interaction.user.id,
+                            "addedBy": interaction.user.name,
                         }
                     }
                 }

@@ -59,22 +59,22 @@ async def getQueue(bot: commands.Bot):
             inline=True,
         )  
 
-        queueString = await listeningQueue(userId=host["userId"])
-
         usersAddedQueueInfo = await findOneFromDb(colName="currentHostSessions", dict={"userId": host["userId"]})
-        userQueue = usersAddedQueueInfo["userQueue"]
+        # userQueue = usersAddedQueueInfo["userQueue"]
 
-        userQueueString = ""
-        for songs in userQueue:
-            user = await bot.fetch_user(songs["addedBy"])
-            userQueueString += songs["songName"] + " - " + user.name + "\n"
+        queueString = await listeningQueue(userId=host["userId"], usersAddedQueueInfo=usersAddedQueueInfo)
+
+        # userQueueString = ""
+        # for songs in userQueue:
+        #     user = await bot.fetch_user(songs["addedBy"])
+            # userQueueString += songs["songName"] + " - " + user.name + "\n"
         
-        await embedFieldSet(
-            embed=embed, 
-            name="User Queue", 
-            value=userQueueString,
-            inline=False,
-        )
+        # await embedFieldSet(
+        #     embed=embed, 
+        #     name="User Queue", 
+        #     value=userQueueString,
+        #     inline=False,
+        # )
 
         await embedFieldSet(
             embed=embed, 
@@ -111,27 +111,39 @@ async def convertTime(time):
     return str(minutes) + ":" + str(seconds)
 
 
-async def listeningQueue(userId):
-
+async def listeningQueue(userId, usersAddedQueueInfo):
 
     token = await userTokenById(userId=userId)
-
     url = "https://api.spotify.com/v1/me/player/queue"
 
     headers = {}
-
     headers["Authorization"] = "Bearer " + token
 
     response = requests.get(url=url, headers=headers)
-
     responseJson = response.json()
 
     queueString = ""
+    userQueue = usersAddedQueueInfo["userQueue"]
+
     for index, track in enumerate(responseJson["queue"]):
-        queueString += str(index+1) + ". " + track["name"] + " by "
+        # queueString += str(index+1) + ". " + track["name"] + " by "
+        songString = ""
+        songString += track["name"] + " by "
         for artist in track["artists"]:
-            queueString += artist["name"] + ", "
-        queueString = queueString[:-2]
+            songString += artist["name"] + ", "
+        songString = songString[:-2]
+
+        addedBy = ""
+        if(len(userQueue) > 0):
+            songCheck = next((x for x in userQueue if x["songName"] == songString), None)
+            if(songCheck is not None):
+                addedBy = " - " + songCheck["addedBy"]
+                userQueue.remove(songCheck)
+
+        songString = str(index+1) + ". " + songString + addedBy
+        queueString += songString
         queueString += "\n"
 
+    for remainingQueueTracks in userQueue:
+        await findOneAndUpdate(colName="currentHostSessions", filter={"userId": userId}, dict={"$pull": {"userQueue": {"songName": remainingQueueTracks["songName"]}}})
     return queueString
