@@ -43,6 +43,20 @@ class songSelectButton(Button):
         for song in self.selectMenu.selectedSongs.keys():
             await addSongToQueue(spotifyUser=self.selectMenu.spotifyUser, songUri=self.selectMenu.selectedSongs[song])
             songsAdded += 1
+            
+            await findOneAndUpdate(
+                colName="currentHostSessions", 
+                filter={"userId": self.selectMenu.spotifyUser["userId"]}, 
+                dict={
+                    "$push": {
+                        "userQueue": {
+                            "songName": song,
+                            "addedBy": interaction.user.id,
+                        }
+                    }
+                }
+            )
+
             await msg.edit(content="Added: " + str(songsAdded), view=None)
             await asyncio.sleep(1)
         await msg.edit(content="Done", view=None)
