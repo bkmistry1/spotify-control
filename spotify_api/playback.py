@@ -58,12 +58,16 @@ async def getQueue(bot):
             inline=True,
         )  
 
+        queueString = await listeningQueue(userId=host["userId"])
+
         await embedFieldSet(
             embed=embed, 
             name="Queue", 
-            value=await listeningQueue(userId=host["userId"]),
+            value=queueString,
             inline=False,
-        )                      
+        )
+
+        print(queueString)                      
         
 
         await message.edit(embed=embed)
