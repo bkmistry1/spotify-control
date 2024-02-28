@@ -117,8 +117,8 @@ async def listeningQueue(userId):
     for index, track in enumerate(responseJson["queue"]):
         queueString += str(index+1) + ". " + track["name"] + " by "
         for artist in track["artists"]:
-            queueString += artist["name"] + ","
-        queueString = queueString[:-1]
+            queueString += artist["name"] + ", "
+        queueString = queueString[:-2]
         queueString += "\n"
 
     return queueString
