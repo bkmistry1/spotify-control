@@ -186,9 +186,15 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
 
     for song in listOfSongs:
 
-        labelString = str(song["name"] + " by " + song["artists"][0]["name"])
-        valueString = str(song["name"] + " by " + song["artists"][0]["name"])
-        descriptionString = str(song["artists"][0]["name"])
+        labelString = str(song["name"] + " by ")
+        artistString = ""
+        for artist in song["artists"]:
+            artistString += artist["name"] + ", "
+        artistString = artistString[:-2]
+
+        labelString += artistString
+        valueString = labelString
+        descriptionString = artistString
 
         labelString = await labelValueCheck(labelValueString=labelString)
         valueString = await labelValueCheck(labelValueString=valueString)
