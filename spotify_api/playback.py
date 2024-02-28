@@ -1,10 +1,11 @@
 import requests
 import discord
+from discord.ext import commands
 
 from spotifycmds import userTokenById, refreshToken
 from data.mongoFunctions import *
 
-async def getQueue(bot):
+async def getQueue(bot: commands.Bot):
 
     allHosts = await findFromDb(colName="currentHostSessions", dict={})    
 
@@ -60,16 +61,28 @@ async def getQueue(bot):
 
         queueString = await listeningQueue(userId=host["userId"])
 
+        usersAddedQueueInfo = await findOneFromDb(colName="currentHostSessions", dict={"userId": host["userId"]})
+        userQueue = usersAddedQueueInfo["userQueue"]
+
+        userQueueString = ""
+        for songs in userQueue:
+            user = await bot.fetch_user(songs["addedBy"])
+            userQueueString += songs["songName"] + " - " + user.name + "\n"
+        
+        await embedFieldSet(
+            embed=embed, 
+            name="User Queue", 
+            value=userQueueString,
+            inline=False,
+        )
+
         await embedFieldSet(
             embed=embed, 
             name="Queue", 
             value=queueString,
             inline=False,
-        )
-
-        print(queueString)                      
+        )            
         
-
         await message.edit(embed=embed)
 
 
