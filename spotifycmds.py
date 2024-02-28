@@ -223,6 +223,11 @@ async def createDiscordSelectOptions(label, value, description):
     return selectOption
 
 async def spotifyHost(interaction: discord.Interaction):
+
+    hostCheck = await findOneFromDb(colName="currentHostSessions", dict={"userId": interaction.user.id})
+    if(hostCheck is not None):
+        await interaction.followup.send("You already have a session open", ephemeral=True)
+        return
     
     guild = interaction.guild
 
