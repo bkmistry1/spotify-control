@@ -27,6 +27,17 @@ class Authentication(commands.Cog):
             
         await ctx.send(f"Synced {len(fmt)} commands")
         return
+
+    @commands.command(name="register")
+    async def register(self, ctx: commands.context.Context) -> None:
+        try:
+            print(ctx.guild.id)
+            await insertIntoCollection(colName="config", mydict={"guildId": ctx.guild.id})
+        except Exception as e:
+            print(e, flush=True)
+                        
+        await ctx.send("done")
+        return      
     
     @app_commands.command(name="auth", description="Authorize with spotify")
     async def spotifyAuthorization(self, interaction: discord.Interaction):
@@ -81,4 +92,16 @@ class Authentication(commands.Cog):
         return        
         
 async def setup(bot: PersistentViewBot):
-    await bot.add_cog(Authentication(bot), guilds=[discord.Object(id=guildId)])
+    # await bot.add_cog(Authentication(bot), guilds=[discord.Object(id=guildId)])
+    
+    guildIds = await getAllGuildIds()
+    await bot.add_cog(Authentication(bot), guilds=guildIds)
+
+async def getAllGuildIds():
+    guildIds = []
+
+    allGuilds = await findFromDb(colName="config", dict={})
+    for guild in allGuilds:
+        guildIds.append(discord.Object(id=guild["guildId"]))
+
+    return guildIds
