@@ -24,10 +24,21 @@ class songSelectList(Select):
         msg = await interaction.original_response()
         songSelectionString = "\n"
         self.selectedSongs = {}
+
+        embed = discord.Embed(
+            title="Song Selection",
+            description="List of Songs Selected",
+            color=discord.Color.dark_green()
+        )        
+
         for index, songSelected in enumerate(self.values):
             self.selectedSongs[songSelected] = self.trackInfo[songSelected]
             songSelectionString += str(index) + ". " + songSelected + "\n"
-        await msg.edit(content="Selected: " + songSelectionString)
+        
+        embed.add_field(name="Songs", value=songSelectionString, inline=False)
+
+        # await msg.edit(content="Selected: " + songSelectionString)
+        await msg.edit(embed=embed)
         return
     
 class songSelectButton(Button):
@@ -57,7 +68,7 @@ class songSelectButton(Button):
                 }
             )
 
-            await msg.edit(content="Added: " + str(songsAdded), view=None)
+            await msg.edit(content="Added: " + str(songsAdded), embed=None, view=None)
             await asyncio.sleep(1)
         await msg.edit(content="Done", view=None)
         return 
