@@ -181,6 +181,11 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
 
     listOfSongs = responseJson["tracks"]["items"]
 
+    if(len(listOfSongs) < 1):
+
+        await interaction.followup.send("No tracks were found, try a new search", ephemeral=True)
+        return
+
     trackInfo = {}
     trackSelectOptions = []
 
