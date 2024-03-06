@@ -33,9 +33,10 @@ class Authentication(commands.Cog):
         try:
             print(ctx.guild.id)
             await insertIntoCollection(colName="config", mydict={"guildId": ctx.guild.id})
+            self.bot.reload_extension(name="cogs.auth")
         except Exception as e:
             print(e, flush=True)
-                        
+
         await ctx.send("done")
         return      
     
