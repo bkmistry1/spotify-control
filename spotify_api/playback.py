@@ -34,30 +34,31 @@ async def getQueue(bot: commands.Bot):
 
         currentlyPlayingArtists = " by "
 
-        for artist in responseJson["item"]["artists"]:
-            currentlyPlayingArtists += artist["name"] + ", "
-        currentlyPlayingArtists = currentlyPlayingArtists[:-2]
+        if(responseJson["item"] is not None):
+            for artist in responseJson["item"]["artists"]:
+                currentlyPlayingArtists += artist["name"] + ", "
+                currentlyPlayingArtists = currentlyPlayingArtists[:-2]        
 
-        await embedFieldSet(
-            embed=embed, 
-            name="Currently Playing", 
-            value=responseJson["item"]["name"] + currentlyPlayingArtists,
-            inline=False,
-        )
+            await embedFieldSet(
+                embed=embed, 
+                name="Currently Playing", 
+                value=responseJson["item"]["name"] + currentlyPlayingArtists,
+                inline=False,
+            )
 
-        await embedFieldSet(
-            embed=embed, 
-            name="Progress", 
-            value=await convertTime(responseJson["progress_ms"]),
-            inline=True,
-        )
+            await embedFieldSet(
+                embed=embed, 
+                name="Progress", 
+                value=await convertTime(responseJson["progress_ms"]),
+                inline=True,
+            )
 
-        await embedFieldSet(
-            embed=embed, 
-            name="Length", 
-            value=await convertTime(responseJson["item"]["duration_ms"]),
-            inline=True,
-        )  
+            await embedFieldSet(
+                embed=embed, 
+                name="Length", 
+                value=await convertTime(responseJson["item"]["duration_ms"]),
+                inline=True,
+            )  
 
         usersAddedQueueInfo = await findOneFromDb(colName="currentHostSessions", dict={"userId": host["userId"]})
         # userQueue = usersAddedQueueInfo["userQueue"]
