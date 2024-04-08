@@ -112,3 +112,20 @@ async def getSpotifyUserProfile(userId):
     responseJson = response.json()
 
     return responseJson
+
+async def addTracksToPlaylist(userId, playlistId, trackUris):
+    token = await userTokenById(userId=userId)
+
+    url = f"https://api.spotify.com/v1/playlists/{playlistId}/tracks"
+
+    headers = {}
+    headers["Authorization"] = "Bearer " + token
+
+    json = {}
+
+    json["uris"] = trackUris
+
+    response = requests.post(url=url, headers=headers, json=json)
+    responseJson = response.json()
+
+    return responseJson

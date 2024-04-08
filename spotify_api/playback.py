@@ -127,10 +127,16 @@ async def listeningQueue(userId, usersAddedQueueInfo):
 
     for index, track in enumerate(responseJson["queue"]):
         # queueString += str(index+1) + ". " + track["name"] + " by "
+
         songString = ""
         songString += track["name"] + " by "
-        for artist in track["artists"]:
-            songString += artist["name"] + ", "
+
+        if(track["type"] == "track"):
+            for artist in track["artists"]:
+                songString += artist["name"] + ", "
+        else:
+            songString += track["show"]["publisher"] + ", "
+
         songString = songString[:-2]
 
         addedBy = ""
@@ -143,6 +149,7 @@ async def listeningQueue(userId, usersAddedQueueInfo):
         songString = str(index+1) + ". " + songString + addedBy
         queueString += songString
         queueString += "\n"
+            
 
     for remainingQueueTracks in userQueue:
         await findOneAndUpdate(colName="currentHostSessions", filter={"userId": userId}, dict={"$pull": {"userQueue": {"songName": remainingQueueTracks["songName"]}}})

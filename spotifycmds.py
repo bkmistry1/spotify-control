@@ -242,42 +242,50 @@ async def spotifyHost(interaction: discord.Interaction):
         guild.me: discord.PermissionOverwrite(read_messages=True)
     }
     
-    newCategory = await guild.create_category(name=interaction.user.name + " Spotify Host", overwrites=overwrites)
-    await newCategory.set_permissions(target=interaction.user, read_messages=True, send_messages=True)
+    try:
 
-    # create new text channel
-    channel = await newCategory.create_text_channel('host', overwrites=overwrites)
-    await channel.set_permissions(target=interaction.user, read_messages=True, send_messages=True)
-    
-    hostView = spotifyHostView()
-    
-    hostView.hostId = interaction.user.id
+        newCategory = await guild.create_category(name=interaction.user.name + " Spotify Host", overwrites=overwrites)
+        await newCategory.set_permissions(target=interaction.user, read_messages=True, send_messages=True)
 
-    hostEmbed = discord.Embed(
-        title="Spotify Host: " + interaction.user.name,
-        description="Add Songs to the Host's Queue \n \
-        use /add_song_to_queue command",
-        color=discord.Color.blue()
-    )
+        # create new text channel
+        channel = await newCategory.create_text_channel('host', overwrites=overwrites)
+        await channel.set_permissions(target=interaction.user, read_messages=True, send_messages=True)
+        
+        hostView = spotifyHostView()
+        
+        hostView.hostId = interaction.user.id
 
-    hostEmbed.add_field(name="", value="", inline=False)
-    hostEmbed.add_field(name="Currently Playing", value="None", inline=False)
-    hostEmbed.add_field(name="Progress", value="None", inline=True)
-    hostEmbed.add_field(name="Length", value="None", inline=True)
-    hostEmbed.add_field(name="Queue", value="None", inline=False)
+        hostEmbed = discord.Embed(
+            title="Spotify Host: " + interaction.user.name,
+            description="Add Songs to the Host's Queue \n \
+            use /add_song_to_queue command",
+            color=discord.Color.blue()
+        )
 
-    hostSessionMsg = await channel.send(embed=hostEmbed, view=hostView)
+        hostEmbed.add_field(name="", value="", inline=False)
+        hostEmbed.add_field(name="Currently Playing", value="None", inline=False)
+        hostEmbed.add_field(name="Progress", value="None", inline=True)
+        hostEmbed.add_field(name="Length", value="None", inline=True)
+        hostEmbed.add_field(name="Queue", value="None", inline=False)
 
-    await insertIntoCollection(
-        colName="currentHostSessions", 
-        mydict = {
-            "userId": interaction.user.id, 
-            "messageId": hostSessionMsg.id,
-            "channelId": hostSessionMsg.channel.id,
-            "userQueue": [],
-        }
-    )
-    await interaction.followup.send("Done", ephemeral=True)
+        hostSessionMsg = await channel.send(embed=hostEmbed, view=hostView)
+
+        await insertIntoCollection(
+            colName="currentHostSessions", 
+            mydict = {
+                "userId": interaction.user.id, 
+                "messageId": hostSessionMsg.id,
+                "channelId": hostSessionMsg.channel.id,
+                "userQueue": [],
+            }
+        )
+        await interaction.followup.send("Done", ephemeral=True)
+
+    except Exception as e:
+        print(e)
+        await channel.delete()
+        await newCategory.delete()        
+        await interaction.followup.send("Failed", ephemeral=True)
 
     return
 

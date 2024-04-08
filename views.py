@@ -1,8 +1,10 @@
+from typing import Any
 import discord
 from discord.ext import commands
 from discord.ui import View, Button, Select
 
 from view_functions import *
+# from spotifycmds import createDiscordSelectOptions
 
 class PersistentViewBot(commands.Bot):
     def __init__(self):
@@ -91,6 +93,27 @@ class spotifyHostView(View):
         embed = interaction.message.embeds[0]
         await interaction.response.edit_message(embed=embed)
         return
+    
+    @discord.ui.button(label="Add To Playlist", custom_id="host_fav_button", row=0)
+    async def addToPlaylist(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
+        userPlaylists = await getYourPlaylists(userId=host["userId"])
+        userPlaylistsOptions = []
+        playlistCount = 0
+        for playlist in userPlaylists["items"]:
+            option = discord.SelectOption(label=playlist["name"], value=playlist["id"], description="")
+            userPlaylistsOptions.append(option)
+            playlistCount += 1
+            if(playlistCount == 24):
+                break
+            
+        playlistOptions = playlistSelect(options=userPlaylistsOptions)
+        addToPlaylistView = playlistView()
+        addToPlaylistView.add_item(playlistOptions)
+        
+        await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
+        return    
 
 class spotifyHostSession(View):
     def __init__(self):
@@ -116,4 +139,22 @@ class spotifyHostInviteSelection(Select):
                 return
 
         await interaction.followup.send("Done", ephemeral=True)
+        return 
+    
+
+class playlistView(View):
+    def __init__(self):
+        super().__init__()            
+
+class playlistSelect(Select):
+    def __init__(self, options):
+        super().__init__(placeholder="Select Playlist to Add Track To", min_values=1, max_values=1, options=options)
+        
+        self.selectedPlaylist = None
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        msg = await interaction.original_response()
+        self.selectedPlaylist = self.values[0]
+        await msg.edit(content=self.selectedPlaylist)
         return 
