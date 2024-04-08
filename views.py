@@ -144,7 +144,25 @@ class spotifyHostInviteSelection(Select):
 
 class playlistView(View):
     def __init__(self):
-        super().__init__()            
+        super().__init__()      
+
+        self.selectView: playlistSelect = None
+
+    @discord.ui.button(label="Submit", custom_id="playlistview_submit_btn", row=1)
+    async def submitTrack(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        msg = await interaction.original_response()
+        playlistId = self.selectView.selectedPlaylist
+        host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
+        await addTracksToPlaylist(userId=host["userId"], playlistId=playlistId, trackUris=[])
+        return
+
+    @discord.ui.button(label="Cancel", custom_id="playlistview_cancel_btn", row=1)      
+    async def cancelBtn(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        msg = await interaction.original_response()
+        await msg.delete()
+        return
 
 class playlistSelect(Select):
     def __init__(self, options):
