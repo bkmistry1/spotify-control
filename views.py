@@ -110,6 +110,7 @@ class spotifyHostView(View):
             
         playlistOptions = playlistSelect(options=userPlaylistsOptions)
         addToPlaylistView = playlistView()
+        addToPlaylistView.selectView = playlistOptions
         addToPlaylistView.add_item(playlistOptions)
         
         await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
@@ -144,21 +145,25 @@ class spotifyHostInviteSelection(Select):
 
 class playlistView(View):
     def __init__(self):
-        super().__init__()      
+        super().__init__(timeout=None)      
 
         self.selectView: playlistSelect = None
 
     @discord.ui.button(label="Submit", custom_id="playlistview_submit_btn", row=1)
-    async def submitTrack(self, interaction: discord.Interaction):
+    async def submitTrack(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         msg = await interaction.original_response()
-        playlistId = self.selectView.selectedPlaylist
-        host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
-        await addTracksToPlaylist(userId=host["userId"], playlistId=playlistId, trackUris=[])
+        playlistId = self.selectView.selectedPlaylist        
+        currentlyPlaying = await getCurrentlyPlaying(userId=interaction.user.id)
+        trackUris = []
+        trackUri = currentlyPlaying["item"]["uri"]
+        trackUris.append(trackUri)
+        await addTracksToPlaylist(userId=interaction.user.id, playlistId=playlistId, trackUris=trackUris)
+        await msg.edit(content="Done", view=None)
         return
 
     @discord.ui.button(label="Cancel", custom_id="playlistview_cancel_btn", row=1)      
-    async def cancelBtn(self, interaction: discord.Interaction):
+    async def cancelBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         msg = await interaction.original_response()
         await msg.delete()
