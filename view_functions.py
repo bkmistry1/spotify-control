@@ -114,6 +114,24 @@ async def getSpotifyUserProfile(userId):
     return responseJson
 
 async def addTracksToPlaylist(userId, playlistId, trackUris):
+
+    # check if tracks are already in playlist
+    playlistItems = await getPlaylistTracks(userId=userId, playlistId=playlistId)
+
+
+    playlistUris = []
+    for track in playlistItems:
+        playlistUris.append(track["track"]["uri"])
+
+    for trackUri in trackUris:
+        if(trackUri in playlistUris):
+            trackUris.remove(trackUri)
+
+    if(len(trackUris) < 1):        
+        return
+    
+    # end check
+    
     token = await userTokenById(userId=userId)
 
     url = f"https://api.spotify.com/v1/playlists/{playlistId}/tracks"
@@ -129,3 +147,19 @@ async def addTracksToPlaylist(userId, playlistId, trackUris):
     responseJson = response.json()
 
     return responseJson
+
+async def getPlaylistTracks(userId, playlistId):
+    token = await userTokenById(userId=userId)
+
+    url = f"https://api.spotify.com/v1/playlists/{playlistId}/tracks"
+
+    headers = {}
+    headers["Authorization"] = "Bearer " + token
+    
+    params = {}
+    params["limit"] = 50
+
+    response = requests.get(url=url, headers=headers, params=params)
+    responseJson = response.json()
+
+    return responseJson["items"]
