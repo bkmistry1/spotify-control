@@ -111,6 +111,7 @@ class spotifyHostView(View):
         playlistOptions = playlistSelect(options=userPlaylistsOptions)
         addToPlaylistView = playlistView()
         addToPlaylistView.selectView = playlistOptions
+        addToPlaylistView.hostUserId = host["userId"]
         addToPlaylistView.add_item(playlistOptions)
         
         await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
@@ -148,17 +149,18 @@ class playlistView(View):
         super().__init__(timeout=None)      
 
         self.selectView: playlistSelect = None
+        self.hostUserId = None
 
     @discord.ui.button(label="Submit", custom_id="playlistview_submit_btn", row=1)
     async def submitTrack(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         msg = await interaction.original_response()
         playlistId = self.selectView.selectedPlaylist        
-        currentlyPlaying = await getCurrentlyPlaying(userId=interaction.user.id)
+        currentlyPlaying = await getCurrentlyPlaying(userId=self.hostUserId)
         trackUris = []
         trackUri = currentlyPlaying["item"]["uri"]
-        trackUris.append(trackUri)
-        await addTracksToPlaylist(userId=interaction.user.id, playlistId=playlistId, trackUris=trackUris)
+        trackUris.append(trackUri)        
+        await addTracksToPlaylist(userId=self.hostUserId, playlistId=playlistId, trackUris=trackUris)
         await msg.edit(content="Done", view=None)
         return
 
