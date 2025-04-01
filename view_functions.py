@@ -6,7 +6,10 @@ from spotify_api.custom_queue import *
 
 async def addSongToQueue(spotifyUser, songUri):
 
-    token = await userTokenById(userId=spotifyUser["userId"])
+    try:
+        token = await userTokenById(userId=spotifyUser)
+    except Exception as e:
+        print(e, flush=True)
 
     params = {}
     params["uri"] = songUri

@@ -67,6 +67,17 @@ class spotifyHostView(View):
             songLength = await self.convertTime(trackObject["duration_ms"])
             progress = await self.convertTime(currentlyPlayingObject["progress_ms"])
 
+
+            try:
+                timeLeftPercentage = currentlyPlayingObject["progress_ms"] / trackObject["duration_ms"]
+            except Exception as e: 
+                print(e, flush=True)
+            print(timeLeftPercentage)
+
+            if(timeLeftPercentage > 0.1):
+                await addSongToQueue(spotifyUser=self.hostId, songUri=self.shuffledSongList.uri)
+                self.shuffledSongList = self.shuffledSongList.next
+
             while(count < 21 and queue.next is not None):
                 
                 songName = queue.name
