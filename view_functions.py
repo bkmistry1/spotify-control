@@ -2,6 +2,7 @@ import discord
 import requests
 
 from data.mongoFunctions import *
+from spotify_api.custom_queue import *
 
 async def addSongToQueue(spotifyUser, songUri):
 
@@ -44,6 +45,21 @@ async def previous(userId):
 
     requests.post(url=url, headers=headers)
     return
+
+async def shuffle(userId):
+    
+    token = await userTokenById(userId=userId)
+    
+    try:
+        allSongs = await getSpotifyQueue(token=token, userId=userId)
+    except Exception as e:
+        print(e)
+        return
+    if(allSongs == 401):
+        return 401
+    shuffledSongList = await shuffleSongs(allSongs=allSongs)
+
+    return shuffledSongList
 
 async def playPause(userId):
     token = await userTokenById(userId=userId)

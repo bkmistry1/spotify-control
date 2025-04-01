@@ -1,5 +1,7 @@
-from typing import Any
+# from typing import Any
 import discord
+import asyncio
+
 from discord.ext import commands
 from discord.ui import View, Button, Select
 
@@ -27,6 +29,8 @@ class spotifyHostView(View):
     def __init__(self):
         super().__init__(timeout=None)
         self.hostId = None  
+        self.shuffledSongList = None
+        self.shuffleTask: asyncio.Task = None
 
     async def ownerCheck(self, messageId, userId):
         hostSession = await findOneFromDb(colName="currentHostSessions", dict={"messageId": messageId})
@@ -34,6 +38,37 @@ class spotifyHostView(View):
             return False
         else:
             return True
+        
+    async def shuffledSongQueue(self, message: discord.Message):
+        while(1):
+            await asyncio.sleep(5)
+
+            songQueueString = ""
+            queue = self.shuffledSongList
+            count = 0
+            
+            while(count < 20 and queue.next is not None):
+                
+                songName = queue.name
+                songArtists = queue.artists
+                artistString = ""
+                for artist in songArtists:
+                    artistString += artist["name"] + ", "
+
+                artistString = artistString.removesuffix(", ")
+
+                songQueueString += f"{songName} by {artistString}\n"
+                
+                queue = queue.next
+                count += 1
+
+            embed = message.embeds[0]
+            for index, field in enumerate(embed.fields):
+                if(field.name == "Queue"):
+                    embed.set_field_at(index=index, name="Queue", value=songQueueString, inline=False)
+                    break
+
+            await message.edit(embed=embed)
 
     @discord.ui.button(label="Invite", custom_id="host_invite_btn", row=0)
     async def inviteBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -115,7 +150,25 @@ class spotifyHostView(View):
         addToPlaylistView.add_item(playlistOptions)
         
         await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
-        return    
+        return   
+
+    @discord.ui.button(custom_id="host_shuffle_songs_button", emoji="🔀", row=1)
+    async def shuffleTracks(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        message = await interaction.original_response()
+        host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
+        shuffledSongList = await shuffle(userId=host["userId"])
+        if(shuffledSongList == 401):
+            await interaction.followup.send("Token expired", ephemeral=True)
+        self.shuffledSongList = shuffledSongList
+        
+        task = asyncio.create_task(self.shuffledSongQueue(message=message))
+        self.shuffleTask = task
+
+        embed = interaction.message.embeds[0]
+        # await interaction.response.edit_message(embed=embed)
+        await message.edit(embed=embed)
+        return     
 
 class spotifyHostSession(View):
     def __init__(self):

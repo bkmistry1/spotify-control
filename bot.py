@@ -19,7 +19,7 @@ bot = PersistentViewBot()
 async def on_ready():
     print("Bot is Up and Ready!", flush=True)
     await bot.change_presence(activity=discord.Game(name="/help"))
-    asyncio.gather(startPlaybackRoutine())
+    # asyncio.gather(startPlaybackRoutine())
 
 @bot.event
 async def load():
