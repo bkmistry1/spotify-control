@@ -1,10 +1,40 @@
-import discord
+import random
+import requests
 
-from data.mongoFunctions import *
+class SongNode():
+    def __init__(self, name, uri, artists):
+        self.name = name
+        self.uri = uri
+        self.artists = artists
+        self.next = None
 
+async def getSpotifyQueue(token):
 
-async def getSpotifyQueue(interaction: discord.Interaction):
+    headers = {}
+    headers["Authorization"] = "Bearer " + token
 
+    url = "https://api.spotify.com/v1/me/player/queue"
 
+    response = requests.get(url=url, headers=headers)
+    responseJson = response.json()
 
-    return
+    queue = responseJson["queue"]
+
+    return queue
+
+async def shuffleSongs(allSongs):
+
+    shuffledList = SongNode(name=None, uri=None, artists=None)
+
+    tempList = []
+
+    for song in allSongs:
+        tmpSongNode = SongNode(name=song.name, uri=song.uri, artists = song.artists)
+        tempList.append(tmpSongNode)
+
+    while(len(tempList) > 0):
+        index = random.randint(0, len(tempList)+1)
+        shuffledList.next = tempList[index]
+        tempList.pop(index)
+
+    return shuffledList.next
