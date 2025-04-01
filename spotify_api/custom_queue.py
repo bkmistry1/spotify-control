@@ -1,6 +1,9 @@
 import random
 import requests
 
+from spotifycmds import refreshToken
+from data.mongoFunctions import *
+
 class SongNode():
     def __init__(self, name, uri, artists):
         self.name = name
@@ -17,7 +20,11 @@ async def getSpotifyQueue(userId, token):
 
     response = requests.get(url=url, headers=headers)
     if(response.status_code == 401):
-        return 401
+        statusCode = await refreshToken(userId=userId)
+        if(statusCode != 200):
+            return 401
+        else:
+            response = requests.get(url=url, headers=headers)
 
     responseJson = response.json()
 

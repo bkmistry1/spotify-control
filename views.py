@@ -47,7 +47,7 @@ class spotifyHostView(View):
             queue = self.shuffledSongList
             count = 0
             
-            while(count < 20 and queue.next is not None):
+            while(count < 21 and queue.next is not None):
                 
                 songName = queue.name
                 songArtists = queue.artists
@@ -57,7 +57,7 @@ class spotifyHostView(View):
 
                 artistString = artistString.removesuffix(", ")
 
-                songQueueString += f"{songName} by {artistString}\n"
+                songQueueString += f"{count+1}. {songName} by {artistString}\n"
                 
                 queue = queue.next
                 count += 1
