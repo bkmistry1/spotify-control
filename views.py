@@ -38,7 +38,20 @@ class spotifyHostView(View):
             return False
         else:
             return True
-        
+
+    async def convertTime(self, time):
+        millis=time
+        millis = int(millis)
+        seconds=(millis/1000)%60
+        seconds = int(seconds)
+        minutes=(millis/(1000*60))%60
+        minutes = int(minutes) 
+
+        if(seconds < 10):
+            seconds = "0" + str(seconds)
+
+        return str(minutes) + ":" + str(seconds)    
+
     async def shuffledSongQueue(self, message: discord.Message):
         while(1):
             await asyncio.sleep(5)
@@ -47,6 +60,13 @@ class spotifyHostView(View):
             queue = self.shuffledSongList
             count = 0
             
+            currentlyPlayingObject = await getCurrentlyPlaying(userId=self.hostId)
+            trackObject = currentlyPlayingObject["item"]
+            currentSongName = trackObject["name"]
+            currentArtistsList = trackObject["artists"]
+            songLength = await self.convertTime(trackObject["duration_ms"])
+            progress = await self.convertTime(currentlyPlayingObject["progress_ms"])
+
             while(count < 21 and queue.next is not None):
                 
                 songName = queue.name
@@ -64,6 +84,15 @@ class spotifyHostView(View):
 
             embed = message.embeds[0]
             for index, field in enumerate(embed.fields):
+                if(field.name == "Currently Playing"):
+                    embed.set_field_at(index=index, name="Currently Playing", value=currentSongName, inline=False)
+
+                if(field.name == "Progress"):
+                    embed.set_field_at(index=index, name="Progress", value=str(progress), inline=True)
+
+                if(field.name == "Length"):
+                    embed.set_field_at(index=index, name="Length", value=str(songLength), inline=True)                    
+
                 if(field.name == "Queue"):
                     embed.set_field_at(index=index, name="Queue", value=songQueueString, inline=False)
                     break
