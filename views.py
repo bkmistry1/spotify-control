@@ -98,6 +98,7 @@ class spotifyHostView(View):
             await interaction.followup.send("You are not allowed to use this command", ephemeral=True)
             return        
         
+        await self.shuffleTask.cancel()
         channel = interaction.channel
         categoryChannel = channel.category
         await channel.delete()
@@ -162,6 +163,8 @@ class spotifyHostView(View):
             await interaction.followup.send("Token expired", ephemeral=True)
         self.shuffledSongList = shuffledSongList
         
+        if(self.shuffleTask is not None):
+            await self.shuffleTask.cancel()
         task = asyncio.create_task(self.shuffledSongQueue(message=message))
         self.shuffleTask = task
 
