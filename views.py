@@ -203,10 +203,14 @@ class spotifyHostView(View):
     async def shuffleTracks(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         message = await interaction.original_response()
+
         host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
         shuffledSongList = await shuffle(userId=host["userId"])
+        
         if(shuffledSongList == 401):
             await interaction.followup.send("Token expired", ephemeral=True)
+            return
+        
         self.shuffledSongList = shuffledSongList
         
         if(self.shuffleTask is not None):
@@ -215,7 +219,6 @@ class spotifyHostView(View):
         self.shuffleTask = task
 
         embed = interaction.message.embeds[0]
-        # await interaction.response.edit_message(embed=embed)
         await message.edit(embed=embed)
         return     
 
