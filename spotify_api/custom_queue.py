@@ -2,16 +2,10 @@ import random
 import requests
 import base64
 
+from my_custom_classes import *
 from env_variables import *
 
 from data.mongoFunctions import *
-
-class SongNode():
-    def __init__(self, name, uri, artists):
-        self.name = name
-        self.uri = uri
-        self.artists = artists
-        self.next = None
 
 async def refreshToken(userId):
     spotifyTokenDoc = await findOneFromDb(colName="spotifyTokens", dict={"userId": userId})
