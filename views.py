@@ -69,7 +69,7 @@ class spotifyHostView(View):
 
             timeLeftPercentage = currentlyPlayingObject["progress_ms"] / trackObject["duration_ms"]
 
-            if(timeLeftPercentage > 0.1):
+            if(timeLeftPercentage > 0.8):
                 await addSongToQueue(spotifyUser=self.hostId, songUri=self.shuffledSongList.uri)
                 self.shuffledSongList = self.shuffledSongList.next
 
