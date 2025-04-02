@@ -6,7 +6,7 @@ from discord.ext import commands
 from discord.ui import View, Button, Select
 
 from view_functions import *
-# from spotifycmds import createDiscordSelectOptions
+from my_custom_classes import *
 
 class PersistentViewBot(commands.Bot):
     def __init__(self):
@@ -29,9 +29,9 @@ class spotifyHostView(View):
     def __init__(self):
         super().__init__(timeout=None)
         self.hostId = None  
-        self.shuffledSongList = None
+        self.shuffledSongList: SongNode = None
         self.shuffleTask: asyncio.Task = None
-        self.nextUpTrack = None
+        self.nextUpTrack: SongNode = None
         self.nextUpQueueTracker = False
 
     async def ownerCheck(self, messageId, userId):
@@ -83,13 +83,8 @@ class spotifyHostView(View):
 
             while(count < 21 and queue.next is not None):
                 
-                songName = queue.name
-                songArtists = queue.artists
-                artistString = ""
-                for artist in songArtists:
-                    artistString += artist["name"] + ", "
-
-                artistString = artistString.removesuffix(", ")
+                songName = await queue.getSongName()
+                artistString = await queue.getArtistsString()
 
                 songQueueString += f"{count+1}. {songName} by {artistString}\n"
                 
@@ -108,13 +103,8 @@ class spotifyHostView(View):
                     embed.set_field_at(index=index, name="Length", value=str(songLength), inline=True)
                 
                 if(field.name == "Next Up" and self.nextUpTrack is not None):
-                    nextUpName = self.nextUpTrack.name
-                    nextUpArtists = self.nextUpTrack.artists
-                    nextUpArtistString = ""
-                    for artist in nextUpArtists:
-                        nextUpArtistString += artist["name"] + ", "
-
-                    nextUpArtistString = nextUpArtistString.removesuffix(", ")
+                    nextUpName = await self.nextUpTrack.getSongName()
+                    nextUpArtistString = await self.nextUpTrack.getArtistsString()
 
                     nextUpQueueString = f"1. {nextUpName} by {nextUpArtistString}\n"
                     embed.set_field_at(index=index, name="Next Up", value=nextUpQueueString, inline=False)                    
