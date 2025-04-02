@@ -31,6 +31,8 @@ class spotifyHostView(View):
         self.hostId = None  
         self.shuffledSongList = None
         self.shuffleTask: asyncio.Task = None
+        self.nextUpTrack = None
+        self.nextUpQueueTracker = False
 
     async def ownerCheck(self, messageId, userId):
         hostSession = await findOneFromDb(colName="currentHostSessions", dict={"messageId": messageId})
@@ -69,9 +71,15 @@ class spotifyHostView(View):
 
             timeLeftPercentage = currentlyPlayingObject["progress_ms"] / trackObject["duration_ms"]
 
-            if(timeLeftPercentage > 0.8):
+            if(self.nextUpQueueTracker is True and timeLeftPercentage < 0.8):
+                self.nextUpQueueTracker = False
+
+            if(timeLeftPercentage > 0.8 and self.nextUpQueueTracker is False):
                 await addSongToQueue(spotifyUser=self.hostId, songUri=self.shuffledSongList.uri)
+                self.nextUpTrack = self.shuffledSongList
                 self.shuffledSongList = self.shuffledSongList.next
+                self.nextUpQueueTracker = True
+            print(timeLeftPercentage)
 
             while(count < 21 and queue.next is not None):
                 
@@ -97,7 +105,19 @@ class spotifyHostView(View):
                     embed.set_field_at(index=index, name="Progress", value=str(progress), inline=True)
 
                 if(field.name == "Length"):
-                    embed.set_field_at(index=index, name="Length", value=str(songLength), inline=True)                    
+                    embed.set_field_at(index=index, name="Length", value=str(songLength), inline=True)
+                
+                if(field.name == "Next Up" and self.nextUpTrack is not None):
+                    nextUpName = self.nextUpTrack.name
+                    nextUpArtists = self.nextUpTrack.artists
+                    nextUpArtistString = ""
+                    for artist in nextUpArtists:
+                        nextUpArtistString += artist["name"] + ", "
+
+                    nextUpArtistString = nextUpArtistString.removesuffix(", ")
+
+                    nextUpQueueString = f"1. {nextUpName} by {nextUpArtistString}\n"
+                    embed.set_field_at(index=index, name="Next Up", value=nextUpQueueString, inline=False)                    
 
                 if(field.name == "Queue"):
                     embed.set_field_at(index=index, name="Queue", value=songQueueString, inline=False)
