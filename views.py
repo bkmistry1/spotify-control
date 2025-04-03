@@ -83,6 +83,7 @@ class spotifyHostView(View):
 
             if(self.nextUpQueueTracker is True and timeLeftPercentage < 0.8):
                 self.nextUpQueueTracker = False
+                self.nextUpTrack = None
 
             if(timeLeftPercentage > 0.8 and self.nextUpQueueTracker is False):
                 await addSongToQueue(spotifyUser=self.hostId, songUri=self.shuffledSongList.uri)
@@ -111,12 +112,16 @@ class spotifyHostView(View):
                 if(field.name == "Length"):
                     embed.set_field_at(index=index, name="Length", value=str(songLength), inline=True)
                 
-                if(field.name == "Next Up" and self.nextUpTrack is not None):
-                    nextUpName = await self.nextUpTrack.getSongName()
-                    nextUpArtistString = await self.nextUpTrack.getArtistsString()
+                if(field.name == "Next Up"):
+                    nextUpQueueString = ""
+                    if(self.nextUpTrack is not None):
+                        nextUpName = await self.nextUpTrack.getSongName()
+                        nextUpArtistString = await self.nextUpTrack.getArtistsString()
 
-                    nextUpQueueString = f"1. {nextUpName} by {nextUpArtistString}\n"
-                    embed.set_field_at(index=index, name="Next Up", value=nextUpQueueString, inline=False)                    
+                        nextUpQueueString = f"1. {nextUpName} by {nextUpArtistString}\n"                                            
+                    else:
+                        nextUpQueueString = None
+                    embed.set_field_at(index=index, name="Next Up", value=nextUpQueueString, inline=False)
 
                 if(field.name == "Queue"):
                     embed.set_field_at(index=index, name="Queue", value=songQueueString, inline=False)
@@ -179,7 +184,12 @@ class spotifyHostView(View):
             
     @discord.ui.button(custom_id="host_next_button", emoji="⏭️", row=1)
     async def nextTrack(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        message = await interaction.original_response()        
         host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
+        await addSongToQueue(spotifyUser=self.hostId, songUri=self.shuffledSongList.uri)
+        self.nextUpTrack = self.shuffledSongList
+        self.shuffledSongList = self.shuffledSongList.next
         await next(userId=host["userId"])
         embed = interaction.message.embeds[0]
         await interaction.response.edit_message(embed=embed)
