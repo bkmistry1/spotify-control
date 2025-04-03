@@ -8,6 +8,7 @@ from views import *
 from data.mongoFunctions import *
 from spotify_views import *
 from view_functions import *
+from global_variables_functions import *
 
 
 async def requestAuthToken():
@@ -207,7 +208,11 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
 
         if(labelString in trackInfo.keys()):
             continue
-        trackInfo[labelString] = song["uri"]
+        trackInfo[labelString] = { 
+            "name": song["name"],
+            "uri": song["uri"],
+            "artists": song["artists"],
+        }
         trackSelectOption = await createDiscordSelectOptions(label=labelString, value=valueString, description=descriptionString)
         trackSelectOptions.append(trackSelectOption)
 
@@ -252,7 +257,7 @@ async def spotifyHost(interaction: discord.Interaction):
         channel = await newCategory.create_text_channel('host', overwrites=overwrites)
         await channel.set_permissions(target=interaction.user, read_messages=True, send_messages=True)
         
-        hostView = spotifyHostView()
+        hostView = spotifyHostView()        
         
         hostView.hostId = interaction.user.id        
 
@@ -271,6 +276,7 @@ async def spotifyHost(interaction: discord.Interaction):
         hostEmbed.add_field(name="Queue", value="None", inline=False)
 
         hostSessionMsg = await channel.send(embed=hostEmbed, view=hostView)
+        await addViewToDict(channelId=hostSessionMsg.channel.id, view=hostView)
         hostView.message = hostSessionMsg
 
         await insertIntoCollection(

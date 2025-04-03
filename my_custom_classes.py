@@ -20,6 +20,12 @@ class SongNode():
     async def getSongName(self):
         return self.name
     
+    async def getQueuedBy(self):
+        if(self.queuedBy is not None):
+            return self.queuedBy
+        else:
+            return None
+    
     async def getLength(self):
         length = 1
         currentNode = self

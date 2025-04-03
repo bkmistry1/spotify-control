@@ -7,6 +7,7 @@ from data.mongoFunctions import *
 from view_functions import *
 from views import *
 from my_custom_classes import *
+from global_variables_functions import *
 
 
 class songSelectionView(View):
@@ -34,7 +35,7 @@ class songSelectList(Select):
         )        
 
         for index, songSelected in enumerate(self.values):
-            self.selectedSongs[songSelected] = self.trackInfo[songSelected]
+            self.selectedSongs[songSelected] = self.trackInfo[songSelected]["uri"]
             songSelectionString += str(index) + ". " + songSelected + "\n"
         
         embed.add_field(name="Songs", value=songSelectionString, inline=False)
@@ -53,30 +54,35 @@ class songSelectButton(Button):
         msg = await interaction.original_response()
         
         for song in self.selectMenu.selectedSongs.keys():
-            hostSession = await findOneFromDb(colName="currentHostSessions", dict={"channelId": str(interaction.channel.id)})
-            message = await interaction.channel.fetch_message(int(hostSession["messageId"]))
-            view: spotifyHostView  = await View.from_message(message=message)
+            view: spotifyHostView = await getViewFromDict(interaction.channel.id)
 
-            newSongNode = SongNode(name=None, uri=song["uri"])
-            songNodeList: list[SongNode] = view.shuffledSongList
+            newSongNode = SongNode(
+                name=self.selectMenu.trackInfo[song]["name"], 
+                uri=self.selectMenu.trackInfo[song]["uri"], 
+                artists=self.selectMenu.trackInfo[song]["artists"]
+            )
+
+            newSongNode.queuedBy = interaction.user.name
+
+            songNodeList = view.shuffledSongList
 
             headNode = SongNode(name=None, uri=None, artists=None)
-            headNode.next = songNodeList[0]
+            headNode.next = songNodeList
             currentNode = headNode
 
-            for songNode in songNodeList:
-                if(songNode.next.queuedBy is None):
-                    tempNode = currentNode.next
-                    currentNode.next = newSongNode
-                    newSongNode.next = tempNode
-                    break
-                else:
-                    continue
+            while(currentNode.next.queuedBy is not None):
+                currentNode = currentNode.next
 
-            view.shuffledSongList = headNode.next                    
+            tempNode = currentNode.next
+            currentNode.next = newSongNode
+            newSongNode.next = tempNode
+            view.shuffledSongList = headNode.next
 
             await asyncio.sleep(1)
+
         await msg.edit(content="Done", view=None)
+        await asyncio.sleep(3)
+        await msg.delete()
         return 
 
 

@@ -95,9 +95,12 @@ class spotifyHostView(View):
                 
                 songName = await queue.getSongName()
                 artistString = await queue.getArtistsString()
+                queuedBy = await queue.getQueuedBy()
 
-                songQueueString += f"{count+1}. {songName} by {artistString}\n"
-                
+                songQueueString += f"{count+1}. {songName} by {artistString}"
+                if(queuedBy is not None):
+                    songQueueString += "----" + queuedBy
+                songQueueString += "\n"
                 queue = queue.next
                 count += 1
 
