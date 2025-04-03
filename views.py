@@ -91,7 +91,7 @@ class spotifyHostView(View):
                 self.shuffledSongList = self.shuffledSongList.next
                 self.nextUpQueueTracker = True
 
-            while(count < 21 and queue.next is not None):
+            while(count < 24 and queue.next is not None):
                 
                 songName = await queue.getSongName()
                 artistString = await queue.getArtistsString()
