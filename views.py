@@ -46,8 +46,6 @@ class spotifyHostView(View):
     async def lockCheck(self):
         while(self.locked == True):
             await asyncio.sleep(2)
-            print("locked")
-        print("unlocked")
         return
 
     async def convertTime(self, time):
