@@ -252,11 +252,16 @@ class spotifyHostView(View):
         currentNode = self.shuffledSongList
 
         songNodeList = []
+        priorityNodeList: list[SongNode] = []
         while(currentNode is not None):
-            songNodeList.append(currentNode)
+            if(currentNode.queuedBy is None):
+                songNodeList.append(currentNode)
+            else:
+                priorityNodeList.append(currentNode)
             currentNode = currentNode.next
 
         songNodeList: list[SongNode] = await shuffleList(listToShuffle=songNodeList)
+        songNodeList = priorityNodeList.append(songNodeList)
 
         headNode = SongNode(name=None, uri=None, artists=None)
         currentNode = headNode

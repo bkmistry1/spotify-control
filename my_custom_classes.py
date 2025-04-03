@@ -6,6 +6,7 @@ class SongNode():
         self.uri = uri
         self.artists = artists
         self.next: SongNode = None
+        self.queuedBy = None
 
     async def getArtistsString(self):
         nextUpArtistString = ""
