@@ -49,6 +49,10 @@ async def previous(userId):
     requests.post(url=url, headers=headers)
     return
 
+async def shuffleList(listToShuffle: list):
+    random.shuffle(listToShuffle)
+    return listToShuffle
+
 async def shuffle(userId):
     
     token = await userTokenById(userId=userId)
@@ -128,6 +132,12 @@ async def getSpotifyUserProfile(userId):
 
 
     response = requests.get(url=url, headers=headers)
+    if(response.status_code == 401):
+        statusCode = await refreshToken(userId=userId)
+        if(statusCode == 200):
+            response = requests.get(url=url, headers=headers)
+        else:
+            return
     responseJson = response.json()
 
     return responseJson
@@ -182,3 +192,35 @@ async def getPlaylistTracks(userId, playlistId):
     responseJson = response.json()
 
     return responseJson["items"]
+
+async def getAllPlaylistTracks(userId, playlistId):
+    token = await userTokenById(userId=userId)
+
+    url = f"https://api.spotify.com/v1/playlists/{playlistId}/tracks"
+
+    headers = {}
+    headers["Authorization"] = "Bearer " + token
+    
+    params = {}
+    
+    limit = 50
+    offset = 0
+    params["limit"] = limit    
+
+    trackLength = 50
+    allTracks = []
+
+    while(trackLength >= limit):
+        params["offset"] = offset
+        response = requests.get(url=url, headers=headers, params=params)
+        responseJson = response.json()
+        trackLength = len(responseJson["items"])        
+        
+        for trackObject in responseJson["items"]:
+            if(trackObject["track"] is not None):
+                allTracks.append(trackObject["track"])
+            else:
+                print("None")
+        offset += limit
+
+    return allTracks

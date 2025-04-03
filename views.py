@@ -29,6 +29,7 @@ class spotifyHostView(View):
     def __init__(self):
         super().__init__(timeout=None)
         self.hostId = None  
+        self.message: discord.Message = None
         self.shuffledSongList: SongNode = None
         self.shuffleTask: asyncio.Task = None
         self.nextUpTrack: SongNode = None
@@ -198,6 +199,29 @@ class spotifyHostView(View):
         
         await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
         return   
+    
+    @discord.ui.button(label="Add Playlist To Queue", custom_id="host_add_playlist_to_queue_button", row=0)
+    async def addPlaylistToQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        message = await interaction.original_response()
+        host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
+        userPlaylists = await getYourPlaylists(userId=host["userId"])
+        userPlaylistsOptions = []
+        playlistCount = 0
+        for playlist in userPlaylists["items"]:
+            option = discord.SelectOption(label=playlist["name"], value=playlist["id"], description="")
+            userPlaylistsOptions.append(option)
+            playlistCount += 1
+            if(playlistCount == 24):
+                break
+            
+        playlistOptions = queuePlaylistSelect(options=userPlaylistsOptions)
+        addToPlaylistView = queuePlaylistView(spotifyHost=self)
+        addToPlaylistView.selectView = playlistOptions
+        addToPlaylistView.add_item(playlistOptions)
+        
+        await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
+        return       
 
     @discord.ui.button(custom_id="host_shuffle_songs_button", emoji="🔀", row=1)
     async def shuffleTracks(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -287,4 +311,65 @@ class playlistSelect(Select):
         msg = await interaction.original_response()
         self.selectedPlaylist = self.values[0]
         await msg.edit(content=self.selectedPlaylist)
+        return 
+    
+
+# view for adding playlist to queue
+class queuePlaylistView(View):
+    def __init__(self, spotifyHost):
+        super().__init__(timeout=None)      
+
+        self.spotifyHost: spotifyHostView = spotifyHost
+        self.selectView: queuePlaylistSelect = None
+
+    @discord.ui.button(label="Submit", custom_id="queue_playlist_select_submit_btn", row=1)
+    async def submitPlaylist(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        msg = await interaction.original_response()
+
+        playlistTracks = await getAllPlaylistTracks(self.spotifyHost.hostId, playlistId=self.selectView.selectedPlaylistId)        
+        playlistTracks = await shuffleList(listToShuffle=playlistTracks)
+
+        songNodeHead = SongNode(name=None, uri=None, artists=None)
+        currentNode = songNodeHead
+        for track in playlistTracks:
+            songNode = SongNode(name=track["name"], uri=track["uri"], artists=track["artists"])
+            currentNode.next = songNode
+            currentNode = currentNode.next
+
+        self.spotifyHost.shuffledSongList = songNodeHead.next
+
+        if(self.spotifyHost.shuffleTask is not None):
+            self.spotifyHost.shuffleTask.cancel()
+        task = asyncio.create_task(self.spotifyHost.shuffledSongQueue(message=self.spotifyHost.message))
+        self.spotifyHost.shuffleTask = task
+
+        await msg.edit(content="Done", view=None)
+        await msg.delete()
+        return
+
+    @discord.ui.button(label="Cancel", custom_id="queue_playlist_select_cancel_btn", row=1)      
+    async def cancelBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        msg = await interaction.original_response()
+        await msg.delete()
+        return
+
+class queuePlaylistSelect(Select):
+    def __init__(self, options):
+        super().__init__(placeholder="Select Playlist to Add to Queue", min_values=1, max_values=1, options=options)
+        
+        self.selectedPlaylistName = None
+        self.selectedPlaylistId = None
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        msg = await interaction.original_response()
+        self.selectedPlaylistId = self.values[0]
+        for option in self.options:
+            if(option.value == self.selectedPlaylistId):
+                self.selectedPlaylistName = option.label
+                break
+
+        await msg.edit(content="You Selected: " + self.selectedPlaylistName)
         return 

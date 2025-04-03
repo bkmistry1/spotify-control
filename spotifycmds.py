@@ -254,7 +254,7 @@ async def spotifyHost(interaction: discord.Interaction):
         
         hostView = spotifyHostView()
         
-        hostView.hostId = interaction.user.id
+        hostView.hostId = interaction.user.id        
 
         hostEmbed = discord.Embed(
             title="Spotify Host: " + interaction.user.name,
@@ -271,6 +271,7 @@ async def spotifyHost(interaction: discord.Interaction):
         hostEmbed.add_field(name="Queue", value="None", inline=False)
 
         hostSessionMsg = await channel.send(embed=hostEmbed, view=hostView)
+        hostView.message = hostSessionMsg
 
         await insertIntoCollection(
             colName="currentHostSessions", 
