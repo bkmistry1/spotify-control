@@ -34,6 +34,7 @@ class spotifyHostView(View):
         self.shuffleTask: asyncio.Task = None
         self.nextUpTrack: SongNode = None
         self.nextUpQueueTracker = False
+        self.locked = False
 
     async def ownerCheck(self, messageId, userId):
         hostSession = await findOneFromDb(colName="currentHostSessions", dict={"messageId": messageId})
@@ -41,6 +42,13 @@ class spotifyHostView(View):
             return False
         else:
             return True
+
+    async def lockCheck(self):
+        while(self.locked == True):
+            await asyncio.sleep(2)
+            print("locked")
+        print("unlocked")
+        return
 
     async def convertTime(self, time):
         millis=time
@@ -57,7 +65,11 @@ class spotifyHostView(View):
 
     async def shuffledSongQueue(self, message: discord.Message):
         while(1):
+
             await asyncio.sleep(5)
+
+            await self.lockCheck()
+            self.locked = True
 
             songQueueString = ""
             queue = self.shuffledSongList
@@ -66,7 +78,6 @@ class spotifyHostView(View):
             currentlyPlayingObject = await getCurrentlyPlaying(userId=self.hostId)
             trackObject = currentlyPlayingObject["item"]
             currentSongName = trackObject["name"]
-            currentArtistsList = trackObject["artists"]
             songLength = await self.convertTime(trackObject["duration_ms"])
             progress = await self.convertTime(currentlyPlayingObject["progress_ms"])
 
@@ -80,7 +91,6 @@ class spotifyHostView(View):
                 self.nextUpTrack = self.shuffledSongList
                 self.shuffledSongList = self.shuffledSongList.next
                 self.nextUpQueueTracker = True
-            print(timeLeftPercentage)
 
             while(count < 21 and queue.next is not None):
                 
@@ -113,7 +123,7 @@ class spotifyHostView(View):
                 if(field.name == "Queue"):
                     embed.set_field_at(index=index, name="Queue", value=songQueueString, inline=False)
                     break
-
+            self.locked = False
             await message.edit(embed=embed)
 
     @discord.ui.button(label="Invite", custom_id="host_invite_btn", row=0)
@@ -228,22 +238,29 @@ class spotifyHostView(View):
         await interaction.response.defer(ephemeral=True)
         message = await interaction.original_response()
 
-        host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
-        shuffledSongList = await shuffle(userId=host["userId"])
-        
-        if(shuffledSongList == 401):
-            await interaction.followup.send("Token expired", ephemeral=True)
-            return
-        
-        self.shuffledSongList = shuffledSongList
-        
-        if(self.shuffleTask is not None):
-            self.shuffleTask.cancel()
-        task = asyncio.create_task(self.shuffledSongQueue(message=message))
-        self.shuffleTask = task
+        await self.lockCheck()
+        self.locked = True
 
-        embed = interaction.message.embeds[0]
-        await message.edit(embed=embed)
+        currentNode = self.shuffledSongList
+
+        songNodeList = []
+        while(currentNode is not None):
+            songNodeList.append(currentNode)
+            currentNode = currentNode.next
+
+        songNodeList: list[SongNode] = await shuffleList(listToShuffle=songNodeList)
+
+        headNode = SongNode(name=None, uri=None, artists=None)
+        currentNode = headNode
+
+        for node in songNodeList:
+            currentNode.next = node
+            currentNode = currentNode.next
+
+        currentNode.next = None
+
+        self.shuffledSongList = headNode.next
+        self.locked = False
         return     
 
 class spotifyHostSession(View):
