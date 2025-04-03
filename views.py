@@ -406,3 +406,49 @@ class queuePlaylistSelect(Select):
 
         await msg.edit(content="You Selected: " + self.selectedPlaylistName)
         return 
+    
+
+class SelectSongFromQueue(View):
+    def __init__(self,timeout = 180):
+        super().__init__(timeout=timeout)
+
+        self.songSelectionLists = []
+        self.selectedList = []
+
+class SelectSongSelection(Select):
+    def __init__(self, min_values, max_values, options):
+        super().__init__(
+            custom_id="Select_Song_From_Queue", 
+            placeholder="Select Songs To Add To Top Of Queue", 
+            min_values=min_values, 
+            max_values=max_values, 
+            options=options
+        )
+
+        self.selectedSongs = []
+
+    async def callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        message = await interaction.original_response()
+
+        selectedValuesString = ""
+        for value in self.values:
+            self.selectedSongs.append(value)
+            selectedValuesString += value + "\n"
+        
+        await message.edit(content=selectedValuesString)
+        return 
+
+    @discord.ui.button(label="Submit", custom_id="select_song_submit_btn", row=1)      
+    async def cancelBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        msg = await interaction.original_response()
+        await msg.delete()
+        return
+    
+    @discord.ui.button(label="Cancel", custom_id="select_song_cancel_btn", row=1)      
+    async def cancelBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        msg = await interaction.original_response()
+        await msg.delete()
+        return    
