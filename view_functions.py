@@ -1,5 +1,6 @@
 import discord
 import requests
+import asyncio
 
 from data.mongoFunctions import *
 from spotify_api.custom_queue import *
@@ -211,6 +212,7 @@ async def getAllPlaylistTracks(userId, playlistId):
     allTracks = []
 
     while(trackLength >= limit):
+        await asyncio.sleep(3)
         params["offset"] = offset
         response = requests.get(url=url, headers=headers, params=params)
         responseJson = response.json()

@@ -64,74 +64,76 @@ class spotifyHostView(View):
 
     async def shuffledSongQueue(self, message: discord.Message):
         while(1):
+            try:
+                await asyncio.sleep(5)
 
-            await asyncio.sleep(5)
+                await self.lockCheck()
+                self.locked = True
 
-            await self.lockCheck()
-            self.locked = True
-
-            songQueueString = ""
-            queue = self.shuffledSongList
-            count = 0
-            
-            currentlyPlayingObject = await getCurrentlyPlaying(userId=self.hostId)
-            trackObject = currentlyPlayingObject["item"]
-            currentSongName = trackObject["name"]
-            songLength = await self.convertTime(trackObject["duration_ms"])
-            progress = await self.convertTime(currentlyPlayingObject["progress_ms"])
-
-            timeLeftPercentage = currentlyPlayingObject["progress_ms"] / trackObject["duration_ms"]
-
-            if(self.nextUpQueueTracker is True and timeLeftPercentage < 0.8):
-                self.nextUpQueueTracker = False
-                self.nextUpTrack = None
-
-            if(timeLeftPercentage > 0.8 and self.nextUpQueueTracker is False):
-                await addSongToQueue(spotifyUser=self.hostId, songUri=self.shuffledSongList.uri)
-                self.nextUpTrack = self.shuffledSongList
-                self.shuffledSongList = self.shuffledSongList.next
-                self.nextUpQueueTracker = True
-
-            while(count < 24 and queue.next is not None):
+                songQueueString = ""
+                queue = self.shuffledSongList
+                count = 0
                 
-                songName = await queue.getSongName()
-                artistString = await queue.getArtistsString()
-                queuedBy = await queue.getQueuedBy()
+                currentlyPlayingObject = await getCurrentlyPlaying(userId=self.hostId)
+                trackObject = currentlyPlayingObject["item"]
+                currentSongName = trackObject["name"]
+                songLength = await self.convertTime(trackObject["duration_ms"])
+                progress = await self.convertTime(currentlyPlayingObject["progress_ms"])
 
-                songQueueString += f"{count+1}. {songName} by {artistString}"
-                if(queuedBy is not None):
-                    songQueueString += "----" + queuedBy
-                songQueueString += "\n"
-                queue = queue.next
-                count += 1
+                timeLeftPercentage = currentlyPlayingObject["progress_ms"] / trackObject["duration_ms"]
 
-            embed = message.embeds[0]
-            for index, field in enumerate(embed.fields):
-                if(field.name == "Currently Playing"):
-                    embed.set_field_at(index=index, name="Currently Playing", value=currentSongName, inline=False)
+                if(self.nextUpQueueTracker is True and timeLeftPercentage < 0.8):
+                    self.nextUpQueueTracker = False
+                    self.nextUpTrack = None
 
-                if(field.name == "Progress"):
-                    embed.set_field_at(index=index, name="Progress", value=str(progress), inline=True)
+                if(timeLeftPercentage > 0.8 and self.nextUpQueueTracker is False):
+                    await addSongToQueue(spotifyUser=self.hostId, songUri=self.shuffledSongList.uri)
+                    self.nextUpTrack = self.shuffledSongList
+                    self.shuffledSongList = self.shuffledSongList.next
+                    self.nextUpQueueTracker = True
 
-                if(field.name == "Length"):
-                    embed.set_field_at(index=index, name="Length", value=str(songLength), inline=True)
-                
-                if(field.name == "Next Up"):
-                    nextUpQueueString = ""
-                    if(self.nextUpTrack is not None):
-                        nextUpName = await self.nextUpTrack.getSongName()
-                        nextUpArtistString = await self.nextUpTrack.getArtistsString()
+                while(count < 24 and queue.next is not None):
+                    
+                    songName = await queue.getSongName()
+                    artistString = await queue.getArtistsString()
+                    queuedBy = await queue.getQueuedBy()
 
-                        nextUpQueueString = f"1. {nextUpName} by {nextUpArtistString}\n"                                            
-                    else:
-                        nextUpQueueString = None
-                    embed.set_field_at(index=index, name="Next Up", value=nextUpQueueString, inline=False)
+                    songQueueString += f"{count+1}. {songName} by {artistString}"
+                    if(queuedBy is not None):
+                        songQueueString += "----" + queuedBy
+                    songQueueString += "\n"
+                    queue = queue.next
+                    count += 1
 
-                if(field.name == "Queue"):
-                    embed.set_field_at(index=index, name="Queue", value=songQueueString, inline=False)
-                    break
-            self.locked = False
-            await message.edit(embed=embed)
+                embed = message.embeds[0]
+                for index, field in enumerate(embed.fields):
+                    if(field.name == "Currently Playing"):
+                        embed.set_field_at(index=index, name="Currently Playing", value=currentSongName, inline=False)
+
+                    if(field.name == "Progress"):
+                        embed.set_field_at(index=index, name="Progress", value=str(progress), inline=True)
+
+                    if(field.name == "Length"):
+                        embed.set_field_at(index=index, name="Length", value=str(songLength), inline=True)
+                    
+                    if(field.name == "Next Up"):
+                        nextUpQueueString = ""
+                        if(self.nextUpTrack is not None):
+                            nextUpName = await self.nextUpTrack.getSongName()
+                            nextUpArtistString = await self.nextUpTrack.getArtistsString()
+
+                            nextUpQueueString = f"1. {nextUpName} by {nextUpArtistString}\n"                                            
+                        else:
+                            nextUpQueueString = None
+                        embed.set_field_at(index=index, name="Next Up", value=nextUpQueueString, inline=False)
+
+                    if(field.name == "Queue"):
+                        embed.set_field_at(index=index, name="Queue", value=songQueueString, inline=False)
+                        break
+                self.locked = False
+                await message.edit(embed=embed, view=self)
+            except Exception as e:
+                print(e, flush=True)
 
     @discord.ui.button(label="Invite", custom_id="host_invite_btn", row=0)
     async def inviteBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -263,7 +265,7 @@ class spotifyHostView(View):
         currentNode = allOptionsNodeHead
 
         while(songNode is not None):
-            options.append(discord.SelectOption(label=songNode.name, value=songNode.name))
+            options.append(discord.SelectOption(label=songNode.name, value=songNode.uri))
             if(songNode.uri not in optionsDict.keys()):
                 optionsDict[songNode.uri] = songNode
             if(len(options) == 24):
@@ -285,11 +287,11 @@ class spotifyHostView(View):
             currentNode = currentNode.next
             # allOptions.append(selectionSongsSelectMenu)
             options = []
-                        
+
         allOptionsNodeHead.previous = currentNode.previous
         currentNode.previous.next = allOptionsNodeHead
         
-        queueSongSelectView = SelectSongFromQueue(hostView=self, selectedOption=allOptionsNodeHead)
+        queueSongSelectView = SelectSongFromQueue(hostView=self, selectedOption=allOptionsNodeHead, optionsDict=optionsDict)
         queueSongSelectView.add_item(allOptionsNodeHead.options)
 
         await interaction.followup.send(view=queueSongSelectView, ephemeral=True)
@@ -421,7 +423,14 @@ class queuePlaylistView(View):
             currentNode.next = songNode
             currentNode = currentNode.next
 
-        self.spotifyHost.shuffledSongList = songNodeHead.next
+        currentNode = self.spotifyHost.shuffledSongList
+        if(currentNode is None):
+            self.spotifyHost.shuffledSongList = songNodeHead.next
+        else:
+            while(currentNode.next is not None):
+                currentNode = currentNode.next
+
+            currentNode.next = songNodeHead.next
 
         if(self.spotifyHost.shuffleTask is not None):
             self.spotifyHost.shuffleTask.cancel()
@@ -460,11 +469,12 @@ class queuePlaylistSelect(Select):
     
 
 class SelectSongFromQueue(View):
-    def __init__(self, hostView, selectedOption):
+    def __init__(self, hostView, selectedOption, optionsDict):
         super().__init__(timeout=180)
 
         self.selectedOption: SelectOptionsNode = selectedOption
         self.hostView: spotifyHostView = hostView
+        self.optionsDict = optionsDict
 
     @discord.ui.button(label="previous", custom_id="previous_next_btn", row=2)      
     async def previousBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -497,6 +507,41 @@ class SelectSongFromQueue(View):
         await interaction.response.defer(ephemeral=True)
         msg = await interaction.original_response()
 
+        selectMenu: SelectSongSelection = self.selectedOption.options
+        
+
+        for uri in selectMenu.selectedSongs:
+            currentNode = self.hostView.shuffledSongList
+            while(currentNode.next.uri != uri):
+                currentNode = currentNode.next
+            currentNode.next = currentNode.next.next
+            
+
+        
+        headSongNode = SongNode(name=None, uri=None, artists=None)
+        currentNode = headSongNode
+        
+        for uri in selectMenu.selectedSongs:
+            currentNode.next = self.optionsDict[uri]            
+            currentNode = currentNode.next
+            currentNode.queuedBy = interaction.user.name
+
+        tailNode = currentNode                
+
+        songListHeadNode = SongNode(name=interaction.user.name, uri=None, artists=None)
+        currentNode = songListHeadNode
+        currentNode.next = self.hostView.shuffledSongList
+
+        while(currentNode.next.queuedBy is not None):
+            currentNode = currentNode.next
+
+        tempNode = currentNode.next
+        currentNode.next = headSongNode.next
+        tailNode.next = tempNode 
+
+        self.hostView.shuffledSongList = songListHeadNode.next
+        
+        
         await msg.delete()
         return
     
@@ -527,7 +572,9 @@ class SelectSongSelection(Select):
         selectedValuesString = ""
         for value in self.values:
             self.selectedSongs.append(value)
-            selectedValuesString += value + "\n"
+        
+        for song in self.selectedSongs:
+            selectedValuesString += song + "\n"
         
         await message.edit(content=selectedValuesString)
         return 

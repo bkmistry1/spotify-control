@@ -1,3 +1,4 @@
+import discord
 
 spotifyHostViewsDict = {}
 
@@ -13,4 +14,4 @@ class SelectOptionsNode():
     def __init__(self, next, previous, options):
         self.next: SelectOptionsNode = next
         self.previous: SelectOptionsNode = previous
-        self.options: list = options
+        self.options = options
