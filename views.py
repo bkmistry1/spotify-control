@@ -121,8 +121,12 @@ class spotifyHostView(View):
                         if(self.nextUpTrack is not None):
                             nextUpName = await self.nextUpTrack.getSongName()
                             nextUpArtistString = await self.nextUpTrack.getArtistsString()
+                            queuedBy = await self.nextUpTrack.getQueuedBy()
 
-                            nextUpQueueString = f"1. {nextUpName} by {nextUpArtistString}\n"                                            
+                            nextUpQueueString = f"1. {nextUpName} by {nextUpArtistString}"                                            
+                            if(queuedBy is not None):
+                                nextUpQueueString += "----" + queuedBy
+                            nextUpQueueString += "\n"
                         else:
                             nextUpQueueString = None
                         embed.set_field_at(index=index, name="Next Up", value=nextUpQueueString, inline=False)
