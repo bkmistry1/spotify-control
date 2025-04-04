@@ -7,6 +7,7 @@ from discord.ui import View, Button, Select
 
 from view_functions import *
 from my_custom_classes import *
+from global_variables_functions import *
 
 class PersistentViewBot(commands.Bot):
     def __init__(self):
@@ -242,7 +243,57 @@ class spotifyHostView(View):
         addToPlaylistView.add_item(playlistOptions)
         
         await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
-        return       
+        return   
+
+    @discord.ui.button(label="Add Song From Queue To Top", custom_id="host_add_song_to_top_of_queue_button", row=0)
+    async def addSongToTopOfQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        message = await interaction.original_response()
+        
+        options = []
+        allOptionsNodeHead = SelectOptionsNode(next=None, previous=None, options=None)
+        optionsDict = {}
+
+        songNode = self.shuffledSongList
+
+        if(self.shuffledSongList is None):
+            await interaction.followup.send("There is no music queued", ephemeral=True)
+            return
+
+        currentNode = allOptionsNodeHead
+
+        while(songNode is not None):
+            options.append(discord.SelectOption(label=songNode.name, value=songNode.name))
+            if(songNode.uri not in optionsDict.keys()):
+                optionsDict[songNode.uri] = songNode
+            if(len(options) == 24):
+                selectionSongsSelectMenu = SelectSongSelection(min_values=1, max_values=len(options), options=options)
+                currentNode.options = selectionSongsSelectMenu
+                tempNode = SelectOptionsNode(next=None, previous=currentNode, options=None)
+                currentNode.next = tempNode
+                currentNode = currentNode.next
+                # allOptions.append(selectionSongsSelectMenu)
+                options = []
+
+            songNode = songNode.next
+
+        if(len(options) > 0):
+            selectionSongsSelectMenu = SelectSongSelection(min_values=1, max_values=len(options), options=options)
+            currentNode.options = selectionSongsSelectMenu
+            tempNode = SelectOptionsNode(next=None, previous=currentNode, options=None)
+            currentNode.next = tempNode
+            currentNode = currentNode.next
+            # allOptions.append(selectionSongsSelectMenu)
+            options = []
+                        
+        allOptionsNodeHead.previous = currentNode.previous
+        currentNode.previous.next = allOptionsNodeHead
+        
+        queueSongSelectView = SelectSongFromQueue(hostView=self, selectedOption=allOptionsNodeHead)
+        queueSongSelectView.add_item(allOptionsNodeHead.options)
+
+        await interaction.followup.send(view=queueSongSelectView, ephemeral=True)
+        return        
 
     @discord.ui.button(custom_id="host_shuffle_songs_button", emoji="🔀", row=1)
     async def shuffleTracks(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -264,7 +315,7 @@ class spotifyHostView(View):
             currentNode = currentNode.next
 
         songNodeList: list[SongNode] = await shuffleList(listToShuffle=songNodeList)
-        songNodeList = priorityNodeList.append(songNodeList)
+        songNodeList = priorityNodeList + songNodeList
 
         headNode = SongNode(name=None, uri=None, artists=None)
         currentNode = headNode
@@ -409,12 +460,54 @@ class queuePlaylistSelect(Select):
     
 
 class SelectSongFromQueue(View):
-    def __init__(self,timeout = 180):
-        super().__init__(timeout=timeout)
+    def __init__(self, hostView, selectedOption):
+        super().__init__(timeout=180)
 
-        self.songSelectionLists = []
-        self.selectedList = []
+        self.selectedOption: SelectOptionsNode = selectedOption
+        self.hostView: spotifyHostView = hostView
 
+    @discord.ui.button(label="previous", custom_id="previous_next_btn", row=2)      
+    async def previousBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        msg = await interaction.original_response()
+
+        self.remove_item(self.selectedOption.options)
+        self.add_item(self.selectedOption.previous.options)
+        self.selectedOption = self.selectedOption.previous
+
+        await msg.edit(view=self)
+
+        return
+    
+    @discord.ui.button(label="Next", custom_id="select_next_btn", row=2)      
+    async def nextBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        msg = await interaction.original_response()
+
+        self.remove_item(self.selectedOption.options)
+        self.add_item(self.selectedOption.next.options)
+        self.selectedOption = self.selectedOption.next
+
+        await msg.edit(view=self)
+
+        return
+
+    @discord.ui.button(label="Submit", custom_id="select_song_submit_btn", row=1)      
+    async def submitBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        msg = await interaction.original_response()
+
+        await msg.delete()
+        return
+    
+    @discord.ui.button(label="Cancel", custom_id="select_song_cancel_btn", row=1)      
+    async def cancelBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        msg = await interaction.original_response()
+        await msg.delete()
+        return    
+
+    
 class SelectSongSelection(Select):
     def __init__(self, min_values, max_values, options):
         super().__init__(
@@ -427,7 +520,7 @@ class SelectSongSelection(Select):
 
         self.selectedSongs = []
 
-    async def callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
         message = await interaction.original_response()
 
@@ -438,17 +531,3 @@ class SelectSongSelection(Select):
         
         await message.edit(content=selectedValuesString)
         return 
-
-    @discord.ui.button(label="Submit", custom_id="select_song_submit_btn", row=1)      
-    async def cancelBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer(ephemeral=True)
-        msg = await interaction.original_response()
-        await msg.delete()
-        return
-    
-    @discord.ui.button(label="Cancel", custom_id="select_song_cancel_btn", row=1)      
-    async def cancelBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer(ephemeral=True)
-        msg = await interaction.original_response()
-        await msg.delete()
-        return    
