@@ -255,6 +255,9 @@ class spotifyHostView(View):
     async def addSongToTopOfQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         message = await interaction.original_response()
+
+        await self.lockCheck()
+        self.locked = True
         
         options = []
         allOptionsNodeHead = SelectOptionsNode(next=None, previous=None, options=None)
@@ -298,6 +301,8 @@ class spotifyHostView(View):
         queueSongSelectView = SelectSongFromQueue(hostView=self, selectedOption=allOptionsNodeHead, optionsDict=optionsDict)
         queueSongSelectView.add_item(allOptionsNodeHead.options)
 
+        self.locked = False
+        
         await interaction.followup.send(view=queueSongSelectView, ephemeral=True)
         return        
 
