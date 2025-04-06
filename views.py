@@ -443,6 +443,7 @@ class queuePlaylistView(View):
     async def submitPlaylist(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         msg = await interaction.original_response()
+        await msg.edit(content="Adding Playlist", view=None)
 
         playlistTracks = await getAllPlaylistTracks(self.spotifyHost.hostId, playlistId=self.selectView.selectedPlaylistId)        
         playlistTracks = await shuffleList(listToShuffle=playlistTracks)
