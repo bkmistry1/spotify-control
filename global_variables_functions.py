@@ -9,6 +9,15 @@ async def addViewToDict(channelId, view):
 async def getViewFromDict(channelId):
     return spotifyHostViewsDict[channelId]
 
+async def labelValueCheck(labelValueString: str):
+    if(len(labelValueString) > 100):
+        subtractString = 99 - len(labelValueString)
+        return labelValueString[:subtractString]
+    return labelValueString
+    
+async def createDiscordSelectOptions(label, value, description):
+    selectOption = discord.SelectOption(label=label, value=value, description=description)
+    return selectOption
 
 class SelectOptionsNode():
     def __init__(self, next, previous, options):

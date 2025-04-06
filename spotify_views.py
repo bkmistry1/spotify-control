@@ -4,8 +4,8 @@ import asyncio
 
 from discord.ui import View, Select, Button
 from data.mongoFunctions import *
-from view_functions import *
-from views import *
+# from view_functions import *
+# from views import *
 from my_custom_classes import *
 from global_variables_functions import *
 
@@ -54,7 +54,7 @@ class songSelectButton(Button):
         msg = await interaction.original_response()
         
         for song in self.selectMenu.selectedSongs.keys():
-            view: spotifyHostView = await getViewFromDict(interaction.channel.id)
+            view = await getViewFromDict(interaction.channel.id)
 
             newSongNode = SongNode(
                 name=self.selectMenu.trackInfo[song]["name"], 
@@ -70,7 +70,7 @@ class songSelectButton(Button):
             headNode.next = songNodeList
             currentNode = headNode
 
-            while(currentNode.next.queuedBy is not None):
+            while(currentNode.next is not None and currentNode.next.queuedBy is not None):
                 currentNode = currentNode.next
 
             tempNode = currentNode.next

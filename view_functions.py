@@ -4,6 +4,9 @@ import asyncio
 
 from data.mongoFunctions import *
 from spotify_api.custom_queue import *
+from global_variables_functions import *
+from spotify_views import *
+
 
 async def addSongToQueue(spotifyUser, songUri):
 
@@ -226,3 +229,99 @@ async def getAllPlaylistTracks(userId, playlistId):
         offset += limit
 
     return allTracks
+
+async def searchSong(interaction: discord.Interaction, searchTerm):
+
+    # find the host queue host Id to get the auth token
+    channel = interaction.channel
+    
+    messages = [message async for message in channel.history(limit=100)]
+
+    spotifyUser = None
+    for message in messages:
+        if(message.author.name == "spotifyControl" and len(message.embeds)>0):
+            embedTitle = message.embeds[0].title
+            hostUser = embedTitle.removeprefix("Spotify Host: ")
+            spotifyUser = await findOneFromDb(colName="spotifyUsers", dict={"userName": hostUser})
+            break
+
+    if(spotifyUser is None):
+        await interaction.followup.send("No Queue was found", ephemeral=True)
+    
+    token = await userTokenById(spotifyUser["userId"])
+
+    params = {}
+    params["q"] = searchTerm
+    params["type"] = "track"
+    params["limit"] = 24
+
+    headers = {}
+    headers["Authorization"] = "Bearer " + token
+
+    url = "https://api.spotify.com/v1/search"
+
+    responseCheck = False
+    while(responseCheck is not True):
+        response = requests.get(url=url, params=params, headers=headers)
+        if(response.status_code != 200):
+            if(response.reason == "Unauthorized"):
+                refreshCheck = await refreshToken(userId=interaction.user.id)
+                if(refreshCheck == 200):
+                    await interaction.followup.send("Spotify Token was expired. Reauthorized", ephemeral=True)
+                    headers["Authorization"] = "Bearer " + token
+                    token = await userTokenById(spotifyUser["userId"])
+                else:
+                    await interaction.followup.send("Failed: Probably expired Token. Tell Bhavin plz.", ephemeral=True)
+                    return
+        else:
+            responseCheck = True
+    
+    responseJson = response.json()
+
+    listOfSongs = responseJson["tracks"]["items"]
+
+    if(len(listOfSongs) < 1):
+
+        await interaction.followup.send("No tracks were found, try a new search", ephemeral=True)
+        return
+
+    trackInfo = {}
+    trackSelectOptions = []
+
+    for song in listOfSongs:
+
+        labelString = str(song["name"] + " by ")
+        artistString = ""
+        for artist in song["artists"]:
+            artistString += artist["name"] + ", "
+        artistString = artistString[:-2]
+
+        labelString += artistString
+        valueString = labelString
+        descriptionString = artistString
+
+        labelString = await labelValueCheck(labelValueString=labelString)
+        valueString = await labelValueCheck(labelValueString=valueString)
+
+        if(labelString in trackInfo.keys()):
+            continue
+        trackInfo[labelString] = { 
+            "name": song["name"],
+            "uri": song["uri"],
+            "artists": song["artists"],
+        }
+        trackSelectOption = await createDiscordSelectOptions(label=labelString, value=valueString, description=descriptionString)
+        trackSelectOptions.append(trackSelectOption)
+
+    trackSelectOptionMenu = songSelectList(options=trackSelectOptions, trackInfo=trackInfo, spotifyUser=spotifyUser)
+    trackSelectBtn = songSelectButton(selectMenu=trackSelectOptionMenu)
+    trackSelectionView = songSelectionView()
+    trackSelectionView.add_item(trackSelectOptionMenu)
+    trackSelectionView.add_item(trackSelectBtn)
+
+    try:
+        await interaction.followup.send(view=trackSelectionView, ephemeral=True)
+    except Exception as e:
+        print(e)
+    
+    return

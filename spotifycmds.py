@@ -229,10 +229,6 @@ async def searchSong(interaction: discord.Interaction, searchTerm):
     
     return 
 
-async def createDiscordSelectOptions(label, value, description):
-    selectOption = discord.SelectOption(label=label, value=value, description=description)
-    return selectOption
-
 async def spotifyHost(interaction: discord.Interaction):
 
     hostCheck = await findOneFromDb(colName="currentHostSessions", dict={"userId": interaction.user.id})
@@ -297,15 +293,6 @@ async def spotifyHost(interaction: discord.Interaction):
         await interaction.followup.send("Failed", ephemeral=True)
 
     return
-
-async def labelValueCheck(labelValueString: str):
-
-    if(len(labelValueString) > 100):
-        subtractString = 99 - len(labelValueString)
-        return labelValueString[:subtractString]
-    
-    return labelValueString
-
 
 async def getPlaylists(interaction: discord.Interaction):
 

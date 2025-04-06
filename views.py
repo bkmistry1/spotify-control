@@ -3,7 +3,7 @@ import discord
 import asyncio
 
 from discord.ext import commands
-from discord.ui import View, Button, Select
+from discord.ui import View, Button, Select, Modal, TextInput
 
 from view_functions import *
 from my_custom_classes import *
@@ -74,9 +74,12 @@ class spotifyHostView(View):
                 queue = self.shuffledSongList
                 count = 0
                 
-                currentlyPlayingObject = await getCurrentlyPlaying(userId=self.hostId)
+                currentlyPlayingObject = await getCurrentlyPlaying(userId=self.hostId)                
                 trackObject = currentlyPlayingObject["item"]
-                currentSongName = trackObject["name"]
+                currentlyPlayingSongNode = SongNode(name=trackObject["name"], uri=trackObject["uri"], artists=trackObject["artists"])                
+                currentSongName = await currentlyPlayingSongNode.getSongName()
+                currentArtists = await currentlyPlayingSongNode.getArtistsString()
+                currentSongName += " by " + currentArtists
                 songLength = await self.convertTime(trackObject["duration_ms"])
                 progress = await self.convertTime(currentlyPlayingObject["progress_ms"])
 
@@ -302,7 +305,7 @@ class spotifyHostView(View):
         queueSongSelectView.add_item(allOptionsNodeHead.options)
 
         self.locked = False
-        
+
         await interaction.followup.send(view=queueSongSelectView, ephemeral=True)
         return        
 
@@ -339,7 +342,26 @@ class spotifyHostView(View):
 
         self.shuffledSongList = headNode.next
         self.locked = False
-        return     
+        return    
+
+    @discord.ui.button(label="Search for Song", custom_id="host_search_for_songbutton", row=2)
+    async def searchForSongToAddToQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
+        searchModal = SongSearchModal()
+        await interaction.response.send_modal(searchModal)
+        return         
+
+class SongSearchModal(Modal, title="Spotify Search Modal"):
+    searchTerm = TextInput(label="Search Term", placeholder="Enter text to search for")
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        message = await interaction.original_response()
+        
+        # embed = discord.Embed(title="Modal Response")
+        searchTerm = self.searchTerm.value
+        
+        await searchSong(interaction=interaction, searchTerm=searchTerm)
+        # await interaction.response.send_message(embeds=[embed])
 
 class spotifyHostSession(View):
     def __init__(self):
