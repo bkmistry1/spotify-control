@@ -98,7 +98,7 @@ class spotifyHostView(View):
                     self.shuffledSongList = self.shuffledSongList.next
                     self.nextUpQueueTracker = True
 
-                while(count < 24 and queue is not None and queue.next is not None):
+                while(count < 24 and queue is not None):
                     
                     songName = await queue.getSongName()
                     artistString = await queue.getArtistsString()
@@ -138,7 +138,7 @@ class spotifyHostView(View):
                         embed.set_field_at(index=index, name="Next Up", value=nextUpQueueString, inline=False)
 
                     if(field.name == "Queue"):
-                        if(queue is None):
+                        if(self.shuffledSongList is None):
                             songQueueString = None
                         embed.set_field_at(index=index, name="Queue", value=songQueueString, inline=False)
                         break
