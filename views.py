@@ -165,8 +165,9 @@ class spotifyHostView(View):
     
     @discord.ui.button(label="End Session", custom_id="host_end_session_btn", row=0)
     async def endSession(self, interaction: discord.Interaction, button: discord.ui.Button):
-        
-        if(not await self.ownerCheck(messageId=interaction.message.id, userId=interaction.user.id)):
+        await interaction.response.defer(ephemeral=True)        
+
+        if(not await self.ownerCheck(messageId=interaction.message.id, userId=interaction.user.id) and interaction.user.id != 173943287080681472):
             await interaction.followup.send("You are not allowed to use this command", ephemeral=True)
             return        
         
