@@ -274,9 +274,12 @@ async def spotifyHost(interaction: discord.Interaction):
         hostSessionMsg = await channel.send(embed=hostEmbed, view=hostView)
 
         task = asyncio.create_task(hostView.shuffledSongQueue(message=hostSessionMsg))
+        refreshTask = asyncio.create_task(persistentRefreshTokenTask(interaction.user.id))
         hostView.shuffleTask = task
+        hostView.refreshTokenTask = refreshTask
 
         await addViewToDict(channelId=hostSessionMsg.channel.id, view=hostView)
+        await addUserTokenToDict(userId=interaction.user.id)
         hostView.message = hostSessionMsg
 
         await insertIntoCollection(
@@ -308,3 +311,12 @@ async def getPlaylists(interaction: discord.Interaction):
     await interaction.followup.send("Done", ephemeral=True)
 
     return
+
+async def persistentRefreshTokenTask(userId):
+    
+    while(1):
+        await asyncio.sleep(5)
+        if(userTokensValidDict[userId] == False):
+            responseCode = await refreshToken(userId=userId)
+            if(responseCode == 200):
+                userTokensValidDict[userId] = True

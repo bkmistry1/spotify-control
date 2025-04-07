@@ -1,9 +1,14 @@
 import discord
 
 spotifyHostViewsDict = {}
+userTokensValidDict = {}
 
 async def addViewToDict(channelId, view):
     spotifyHostViewsDict[channelId] = view
+    return
+
+async def addUserTokenToDict(userId):
+    userTokensValidDict[userId] = True
     return
 
 async def getViewFromDict(channelId):

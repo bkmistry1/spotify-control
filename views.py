@@ -33,6 +33,7 @@ class spotifyHostView(View):
         self.message: discord.Message = None
         self.shuffledSongList: SongNode = None
         self.shuffleTask: asyncio.Task = None
+        self.refreshTokenTask: asyncio.Task = None
         self.nextUpTrack: SongNode = None
         self.nextUpQueueTracker = False
         self.locked = False
@@ -74,7 +75,9 @@ class spotifyHostView(View):
                 queue = self.shuffledSongList
                 count = 0
                 
-                currentlyPlayingObject = await getCurrentlyPlaying(userId=self.hostId)                
+                currentlyPlayingObject = await getCurrentlyPlaying(userId=self.hostId)        
+                if("item" not in currentlyPlayingObject.keys()):
+                    userTokensValidDict[self.hostId] = False
                 trackObject = currentlyPlayingObject["item"]
                 currentlyPlayingSongNode = SongNode(name=trackObject["name"], uri=trackObject["uri"], artists=trackObject["artists"])                
                 currentSongName = await currentlyPlayingSongNode.getSongName()
@@ -351,7 +354,10 @@ class spotifyHostView(View):
     @discord.ui.button(label="Search for Song", custom_id="host_search_for_songbutton", row=2)
     async def searchForSongToAddToQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
         searchModal = SongSearchModal()
-        await interaction.response.send_modal(searchModal)
+        try:
+            await interaction.response.send_modal(searchModal)
+        except Exception as e:
+            print(e, flush=True)
         return         
 
 class SongSearchModal(Modal, title="Spotify Search Modal"):
