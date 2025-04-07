@@ -51,11 +51,12 @@ class songSelectButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
-        msg = await interaction.original_response()
-        
-        for song in self.selectMenu.selectedSongs.keys():
-            view = await getViewFromDict(interaction.channel.id)
+        msg = await interaction.original_response()        
+        view = await getViewFromDict(interaction.channel.id)
 
+        newSongNodeList = SongNode(name=None, uri=None, artists=None)
+        currentNode = newSongNodeList
+        for song in self.selectMenu.selectedSongs.keys():            
             newSongNode = SongNode(
                 name=self.selectMenu.trackInfo[song]["name"], 
                 uri=self.selectMenu.trackInfo[song]["uri"], 
@@ -63,22 +64,30 @@ class songSelectButton(Button):
             )
 
             newSongNode.queuedBy = interaction.user.name
+            currentNode.next = newSongNode
+            currentNode = currentNode.next
 
-            songNodeList = view.shuffledSongList
+        newSongNodeListTail = currentNode
+        songNodeList = view.shuffledSongList        
+        headNode = SongNode(name=None, uri=None, artists=None)
 
-            headNode = SongNode(name=None, uri=None, artists=None)
+        if(songNodeList is not None):    
             headNode.next = songNodeList
             currentNode = headNode
 
             while(currentNode.next is not None and currentNode.next.queuedBy is not None):
                 currentNode = currentNode.next
 
-            tempNode = currentNode.next
-            currentNode.next = newSongNode
-            newSongNode.next = tempNode
-            view.shuffledSongList = headNode.next
+            tempNode = currentNode.next    
+            currentNode.next = newSongNodeList.next
+            newSongNodeListTail.next = tempNode
+        
+        else:
+            headNode.next = newSongNodeList.next
 
-            await asyncio.sleep(1)
+        view.shuffledSongList = headNode.next
+
+        await asyncio.sleep(1)
 
         await msg.edit(content="Done", view=None)
         await asyncio.sleep(3)

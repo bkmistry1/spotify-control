@@ -142,6 +142,7 @@ class spotifyHostView(View):
                 self.locked = False
                 await message.edit(embed=embed, view=self)
             except Exception as e:
+                self.locked = False
                 print(e, flush=True)
 
     @discord.ui.button(label="Invite", custom_id="host_invite_btn", row=0)
