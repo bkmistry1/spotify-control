@@ -272,6 +272,10 @@ async def spotifyHost(interaction: discord.Interaction):
         hostEmbed.add_field(name="Queue", value="None", inline=False)
 
         hostSessionMsg = await channel.send(embed=hostEmbed, view=hostView)
+
+        task = asyncio.create_task(hostView.shuffledSongQueue(message=hostSessionMsg))
+        hostView.shuffleTask = task
+
         await addViewToDict(channelId=hostSessionMsg.channel.id, view=hostView)
         hostView.message = hostSessionMsg
 
