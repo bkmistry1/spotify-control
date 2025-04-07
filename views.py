@@ -71,8 +71,6 @@ class spotifyHostView(View):
                 await self.lockCheck()
                 self.locked = True
 
-                songQueueString = ""
-                queue = self.shuffledSongList
                 count = 0
                 
                 currentlyPlayingObject = await getCurrentlyPlaying(userId=self.hostId)        
@@ -97,6 +95,9 @@ class spotifyHostView(View):
                     self.nextUpTrack = self.shuffledSongList
                     self.shuffledSongList = self.shuffledSongList.next
                     self.nextUpQueueTracker = True
+
+                songQueueString = ""
+                queue = self.shuffledSongList
 
                 while(count < 24 and queue is not None):
                     
@@ -270,16 +271,19 @@ class spotifyHostView(View):
 
         await self.lockCheck()
         self.locked = True
-        
+
+        if(self.shuffledSongList is None):
+            await interaction.followup.send("There is no music queued", ephemeral=True)
+            return
+                
         options = []
         allOptionsNodeHead = SelectOptionsNode(next=None, previous=None, options=None)
         optionsDict = {}
 
         songNode = self.shuffledSongList
 
-        if(self.shuffledSongList is None):
-            await interaction.followup.send("There is no music queued", ephemeral=True)
-            return
+        while(songNode.queuedBy is not None):
+            songNode = songNode.next
 
         currentNode = allOptionsNodeHead
 
@@ -555,12 +559,12 @@ class SelectSongFromQueue(View):
         
 
         for uri in selectMenu.selectedSongs:
-            currentNode = self.hostView.shuffledSongList
+            headNode = SongNode(name=None, uri=None, artists=None)
+            headNode.next = self.hostView.shuffledSongList
+            currentNode = headNode
             while(currentNode.next.uri != uri):
                 currentNode = currentNode.next
             currentNode.next = currentNode.next.next
-            
-
         
         headSongNode = SongNode(name=None, uri=None, artists=None)
         currentNode = headSongNode
