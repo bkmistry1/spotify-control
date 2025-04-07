@@ -210,11 +210,18 @@ class spotifyHostView(View):
         await interaction.response.defer(ephemeral=True)
         message = await interaction.original_response()        
         host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
-        await addSongToQueue(spotifyUser=self.hostId, songUri=self.shuffledSongList.uri)
-        self.nextUpTrack = self.shuffledSongList
-        self.shuffledSongList = self.shuffledSongList.next
+        await self.lockCheck()
+        self.locked = True
+
+        if(self.nextUpTrack is not None):
+            self.nextUpTrack = None
+        else:
+            await addSongToQueue(spotifyUser=self.hostId, songUri=self.shuffledSongList.uri)
+            self.nextUpTrack = self.shuffledSongList
+            self.shuffledSongList = self.shuffledSongList.next
         await next(userId=host["userId"])
         embed = interaction.message.embeds[0]
+        self.locked = False
         await interaction.response.edit_message(embed=embed)
         return
     
