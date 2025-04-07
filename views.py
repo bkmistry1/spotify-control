@@ -179,6 +179,8 @@ class spotifyHostView(View):
         
         if(self.shuffleTask is not None):
             self.shuffleTask.cancel()
+        if(self.refreshTokenTask is not None):
+            self.refreshTokenTask.cancel()            
         channel = interaction.channel
         categoryChannel = channel.category
         await channel.delete()
