@@ -223,7 +223,7 @@ class spotifyHostView(View):
             self.nextUpTrack = None
         else:
             await addSongToQueue(spotifyUser=self.hostId, songUri=self.shuffledSongList.uri)
-            self.nextUpTrack = self.shuffledSongList
+            # self.nextUpTrack = self.shuffledSongList
             self.shuffledSongList = self.shuffledSongList.next
         await next(userId=host["userId"])
         embed = interaction.message.embeds[0]
@@ -459,7 +459,7 @@ class PlaylistSearchModal(Modal, title="Spotify Playlist Search Modal"):
             currentNode.next = songNodeHead.next
 
         view.locked = False
-        
+
         return
 
 class spotifyHostSession(View):
