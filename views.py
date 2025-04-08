@@ -107,12 +107,16 @@ class spotifyHostView(View):
                     artistString = await queue.getArtistsString()
                     queuedBy = await queue.getQueuedBy()
 
+                    tempString = f"{count+1}. {songName} by {artistString}"
+                    if(len(songQueueString) + len(tempString) > 1024):
+                        break
                     songQueueString += f"{count+1}. {songName} by {artistString}"
                     if(queuedBy is not None):
                         songQueueString += "----" + queuedBy
                     songQueueString += "\n"
                     queue = queue.next
                     count += 1
+                    
 
                 embed = message.embeds[0]
                 for index, field in enumerate(embed.fields):
@@ -272,6 +276,31 @@ class spotifyHostView(View):
         
         await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
         return   
+    
+    @discord.ui.button(label="Add Your Playlist To Queue", custom_id="host_add_your_playlist_to_queue_button", row=2)
+    async def addUserPlaylistToQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        message = await interaction.original_response()
+        userPlaylists = await getYourPlaylists(userId=interaction.user.id)
+
+        # if(userPlaylists)
+
+        userPlaylistsOptions = []
+        playlistCount = 0
+        for playlist in userPlaylists["items"]:
+            option = discord.SelectOption(label=playlist["name"], value=playlist["id"], description="")
+            userPlaylistsOptions.append(option)
+            playlistCount += 1
+            if(playlistCount == 24):
+                break
+            
+        playlistOptions = queuePlaylistSelect(options=userPlaylistsOptions)
+        addToPlaylistView = queuePlaylistView(spotifyHost=self)
+        addToPlaylistView.selectView = playlistOptions
+        addToPlaylistView.add_item(playlistOptions)
+        
+        await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
+        return    
 
     @discord.ui.button(label="Add Song From Queue To Top", custom_id="host_add_song_to_top_of_queue_button", row=0)
     async def addSongToTopOfQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -533,7 +562,7 @@ class SelectSongFromQueue(View):
         self.hostView: spotifyHostView = hostView
         self.optionsDict = optionsDict
 
-    @discord.ui.button(label="previous", custom_id="previous_next_btn", row=2)      
+    @discord.ui.button(label="Previous Page", custom_id="previous_next_btn", row=2)      
     async def previousBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         msg = await interaction.original_response()
@@ -546,7 +575,7 @@ class SelectSongFromQueue(View):
 
         return
     
-    @discord.ui.button(label="Next", custom_id="select_next_btn", row=2)      
+    @discord.ui.button(label="Next Page", custom_id="select_next_btn", row=2)      
     async def nextBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         msg = await interaction.original_response()
