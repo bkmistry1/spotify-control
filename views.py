@@ -301,6 +301,12 @@ class spotifyHostView(View):
         
         await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
         return    
+    
+    @discord.ui.button(label="Add Playlist by Spotify Link To Queue", custom_id="host_add_playlist_link_to_queue_button", row=2)
+    async def addPlaylistByLinkToQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
+        spotifyPlaylistLinkModal = PlaylistSearchModal()
+        await interaction.response.send_modal(spotifyPlaylistLinkModal)
+        return    
 
     @discord.ui.button(label="Add Song From Queue To Top", custom_id="host_add_song_to_top_of_queue_button", row=0)
     async def addSongToTopOfQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -416,6 +422,45 @@ class SongSearchModal(Modal, title="Spotify Search Modal"):
         
         await searchSong(interaction=interaction, searchTerm=searchTerm)
         # await interaction.response.send_message(embeds=[embed])
+
+class PlaylistSearchModal(Modal, title="Spotify Playlist Search Modal"):
+    searchTerm = TextInput(label="Search Term", placeholder="Enter Public spotify playlist link")
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        message = await interaction.original_response()
+        view: spotifyHostView = await getViewFromDict(channelId=interaction.channel.id)
+        searchTerm = self.searchTerm.value
+
+        searchTerm = searchTerm.split("?")
+        searchTerm = searchTerm[0].split("/")
+
+        spotifyPlaylistId = searchTerm[len(searchTerm)-1]
+        playlistTracks = await getAllPlaylistTracks(userId=view.hostId, playlistId=spotifyPlaylistId)
+        playlistTracks = await shuffleList(listToShuffle=playlistTracks)
+
+        await view.lockCheck()
+        view.locked = True
+
+        songNodeHead = SongNode(name=None, uri=None, artists=None)
+        currentNode = songNodeHead
+        for track in playlistTracks:
+            songNode = SongNode(name=track["name"], uri=track["uri"], artists=track["artists"])
+            currentNode.next = songNode
+            currentNode = currentNode.next
+
+        currentNode = view.shuffledSongList
+        if(currentNode is None):
+            view.shuffledSongList = songNodeHead.next
+        else:
+            while(currentNode.next is not None):
+                currentNode = currentNode.next
+
+            currentNode.next = songNodeHead.next
+
+        view.locked = False
+        
+        return
 
 class spotifyHostSession(View):
     def __init__(self):
