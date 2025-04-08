@@ -76,6 +76,7 @@ class spotifyHostView(View):
                 currentlyPlayingObject = await getCurrentlyPlaying(userId=self.hostId)        
                 if("item" not in currentlyPlayingObject.keys()):
                     userTokensValidDict[self.hostId] = False
+                    self.locked = False
                     continue
                 trackObject = currentlyPlayingObject["item"]
                 currentlyPlayingSongNode = SongNode(name=trackObject["name"], uri=trackObject["uri"], artists=trackObject["artists"])                
