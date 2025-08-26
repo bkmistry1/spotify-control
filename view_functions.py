@@ -118,13 +118,30 @@ async def getYourPlaylists(userId):
     url = "https://api.spotify.com/v1/users/"+ spotifyUserId +"/playlists"
 
     headers = {}
-    
+    params = {}
+
+    limit = 50
+    offset = 0
+    numberOfPlaylistsReturned = 50
+
     headers["Authorization"] = "Bearer " + token
+    params["limit"] = limit
+    
+    allPlaylists = []
 
-    response = requests.get(url=url, headers=headers)
-    responseJson = response.json()
+    while(numberOfPlaylistsReturned >= limit):        
+        params["offset"] = offset
 
-    return responseJson
+        response = requests.get(url=url, headers=headers, params=params)
+        responseJson = response.json()
+
+        for playlist in responseJson["items"]:
+            allPlaylists.append(playlist)
+
+        numberOfPlaylistsReturned = len(responseJson["items"])
+        offset += limit
+
+    return allPlaylists
 
 async def getSpotifyUserProfile(userId):
     

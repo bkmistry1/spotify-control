@@ -287,7 +287,7 @@ class spotifyHostView(View):
 
         userPlaylistsOptions = []
         playlistCount = 0
-        for playlist in userPlaylists["items"]:
+        for playlist in userPlaylists:
             option = discord.SelectOption(label=playlist["name"], value=playlist["id"], description="")
             userPlaylistsOptions.append(option)
             playlistCount += 1
