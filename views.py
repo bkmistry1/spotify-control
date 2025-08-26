@@ -608,6 +608,18 @@ class queuePlaylistView(View):
         msg = await interaction.original_response()
         await msg.delete()
         return
+    
+    @discord.ui.button(label="Previous", custom_id="queue_playlist_select_previous_btn", row=2)
+    async def previousBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        await interaction.followup.send("Prev pressed", ephemeral=True)
+        return    
+    
+    @discord.ui.button(label="Next", custom_id="queue_playlist_select_next_btn", row=2)
+    async def nextBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        await interaction.followup.send("Next pressed", ephemeral=True)
+        return        
 
 class queuePlaylistSelect(Select):
     def __init__(self, options):
