@@ -165,8 +165,13 @@ class spotifyHostView(View):
         
         members: list[discord.Member] = interaction.guild.members
         memberList = []
+        currentMemberListInChannel = interaction.channel.members
         for member in members:
+            if(member in currentMemberListInChannel):
+                continue
             memberList.append(discord.SelectOption(label=member.name, value=member.id, description=""))
+            if(len(memberList) == 24):
+                break
 
         selectMenu = spotifyHostInviteSelection(placeholder="Select Members to Invite To Session", options=memberList, min=1, max=len(memberList))
         

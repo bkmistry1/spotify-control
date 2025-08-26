@@ -141,6 +141,7 @@ async def getYourPlaylists(userId):
         numberOfPlaylistsReturned = len(responseJson["items"])
         offset += limit
 
+    # allPlaylistsSorted = sorted(allPlaylists, key=lambda x: x['name'])
     return allPlaylists
 
 async def getSpotifyUserProfile(userId):
