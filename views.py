@@ -286,15 +286,27 @@ class spotifyHostView(View):
         # if(userPlaylists)
 
         userPlaylistsOptions = []
-        playlistCount = 0
+        userPlaylistOptionsArr = []
+        # playlistCount = 0
         for playlist in userPlaylists:
-            option = discord.SelectOption(label=playlist["name"], value=playlist["id"], description="")
+            # option = discord.SelectOption(label=playlist["name"], value=playlist["id"], description="")
+            option = await createDiscordSelectOptions(label=playlist["name"], value=playlist["id"], description="")
             userPlaylistsOptions.append(option)
-            playlistCount += 1
-            if(playlistCount == 24):
-                break
-            
-        playlistOptions = queuePlaylistSelect(options=userPlaylistsOptions)
+            # playlistCount += 1
+            if(len(userPlaylistsOptions) == 24):
+                userPlaylistOptionsArr.append(userPlaylistsOptions)
+                userPlaylistsOptions = []
+        if(len(userPlaylistsOptions) > 0):
+            userPlaylistOptionsArr.append(userPlaylistsOptions)
+
+        playlistHeadNode = SelectOptionsNode(next=None, previous=None, options=None)
+        currentNode = playlistHeadNode
+        for playlistOptions in userPlaylistOptionsArr:
+            options = queuePlaylistSelect(options=playlistOptions)
+            currentNode.next = SelectOptionsNode(next=None, previous=currentNode, options=options)
+            currentNode = currentNode.next
+
+        playlistOptions = playlistHeadNode.next.options
         addToPlaylistView = queuePlaylistView(spotifyHost=self)
         addToPlaylistView.selectView = playlistOptions
         addToPlaylistView.add_item(playlistOptions)
