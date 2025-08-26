@@ -305,9 +305,11 @@ class spotifyHostView(View):
             options = queuePlaylistSelect(options=playlistOptions)
             currentNode.next = SelectOptionsNode(next=None, previous=currentNode, options=options)
             currentNode = currentNode.next
+        playlistHeadNode.next.previous = currentNode
+        currentNode.next = playlistHeadNode.next
 
         playlistOptions = playlistHeadNode.next.options
-        addToPlaylistView = queuePlaylistView(spotifyHost=self)
+        addToPlaylistView = queuePlaylistView(spotifyHost=self, selectedView=playlistHeadNode.next)
         addToPlaylistView.selectView = playlistOptions
         addToPlaylistView.add_item(playlistOptions)
         
@@ -562,11 +564,12 @@ class playlistSelect(Select):
 
 # view for adding playlist to queue
 class queuePlaylistView(View):
-    def __init__(self, spotifyHost):
+    def __init__(self, spotifyHost, selectedView):
         super().__init__(timeout=None)      
 
         self.spotifyHost: spotifyHostView = spotifyHost
         self.selectView: queuePlaylistSelect = None
+        self.selectedView: SelectOptionsNode = selectedView
 
     @discord.ui.button(label="Submit", custom_id="queue_playlist_select_submit_btn", row=1)
     async def submitPlaylist(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -612,13 +615,23 @@ class queuePlaylistView(View):
     @discord.ui.button(label="Previous", custom_id="queue_playlist_select_previous_btn", row=2)
     async def previousBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
-        await interaction.followup.send("Prev pressed", ephemeral=True)
+        msg = await interaction.original_response()
+        self.remove_item(self.selectView)
+        self.selectedView = self.selectedView.previous
+        self.selectView = self.selectedView.options
+        self.add_item(self.selectView)
+        await msg.edit(view=self)
         return    
     
     @discord.ui.button(label="Next", custom_id="queue_playlist_select_next_btn", row=2)
     async def nextBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
-        await interaction.followup.send("Next pressed", ephemeral=True)
+        msg = await interaction.original_response()
+        self.remove_item(self.selectView)
+        self.selectedView = self.selectedView.next
+        self.selectView = self.selectedView.options
+        self.add_item(self.selectView)
+        await msg.edit(view=self)
         return        
 
 class queuePlaylistSelect(Select):
