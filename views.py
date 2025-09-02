@@ -438,7 +438,7 @@ class spotifyHostView(View):
         self.locked = False
         return    
 
-    @discord.ui.button(label="Search for Song", custom_id="host_search_for_songbutton", style=discord.ButtonStyle.green, row=2)
+    @discord.ui.button(label="Add Song", custom_id="host_search_for_songbutton", style=discord.ButtonStyle.green, row=2)
     async def searchForSongToAddToQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
         searchModal = SongSearchModal()
         try:
