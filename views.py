@@ -606,7 +606,8 @@ class queuePlaylistView(View):
         task = asyncio.create_task(self.spotifyHost.shuffledSongQueue(message=self.spotifyHost.message))
         self.spotifyHost.shuffleTask = task
 
-        await msg.edit(content="Done", view=None)
+        await msg.edit(content="Playlist was successfully added to the end of Queue\n Try the shuffle button: 🔀", view=None)
+        await asyncio.sleep(10)
         await msg.delete()
         return
 
