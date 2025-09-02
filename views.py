@@ -259,28 +259,28 @@ class spotifyHostView(View):
         await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
         return   
     
-    @discord.ui.button(label="Add Playlist To Queue", custom_id="host_add_playlist_to_queue_button", row=0)
-    async def addPlaylistToQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer(ephemeral=True)
-        message = await interaction.original_response()
-        host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
-        userPlaylists = await getYourPlaylists(userId=host["userId"])
-        userPlaylistsOptions = []
-        playlistCount = 0
-        for playlist in userPlaylists["items"]:
-            option = discord.SelectOption(label=playlist["name"], value=playlist["id"], description="")
-            userPlaylistsOptions.append(option)
-            playlistCount += 1
-            if(playlistCount == 24):
-                break
+    # @discord.ui.button(label="Add Playlist To Queue", custom_id="host_add_playlist_to_queue_button", row=0)
+    # async def addPlaylistToQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
+    #     await interaction.response.defer(ephemeral=True)
+    #     message = await interaction.original_response()
+    #     host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
+    #     userPlaylists = await getYourPlaylists(userId=host["userId"])
+    #     userPlaylistsOptions = []
+    #     playlistCount = 0
+    #     for playlist in userPlaylists["items"]:
+    #         option = discord.SelectOption(label=playlist["name"], value=playlist["id"], description="")
+    #         userPlaylistsOptions.append(option)
+    #         playlistCount += 1
+    #         if(playlistCount == 24):
+    #             break
             
-        playlistOptions = queuePlaylistSelect(options=userPlaylistsOptions)
-        addToPlaylistView = queuePlaylistView(spotifyHost=self)
-        addToPlaylistView.selectView = playlistOptions
-        addToPlaylistView.add_item(playlistOptions)
+    #     playlistOptions = queuePlaylistSelect(options=userPlaylistsOptions)
+    #     addToPlaylistView = queuePlaylistView(spotifyHost=self)
+    #     addToPlaylistView.selectView = playlistOptions
+    #     addToPlaylistView.add_item(playlistOptions)
         
-        await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
-        return   
+    #     await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
+    #     return   
     
     @discord.ui.button(label="Add Your Playlist To Queue", custom_id="host_add_your_playlist_to_queue_button", row=2)
     async def addUserPlaylistToQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
