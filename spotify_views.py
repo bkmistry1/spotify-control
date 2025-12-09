@@ -56,36 +56,37 @@ class songSelectButton(Button):
 
         newSongNodeList = SongNode(name=None, uri=None, artists=None)
         currentNode = newSongNodeList
-        for song in self.selectMenu.selectedSongs.keys():            
-            newSongNode = SongNode(
-                name=self.selectMenu.trackInfo[song]["name"], 
-                uri=self.selectMenu.trackInfo[song]["uri"], 
-                artists=self.selectMenu.trackInfo[song]["artists"]
-            )
+        if self.selectMenu.selectedSongs:
+            for song in self.selectMenu.selectedSongs.keys():            
+                newSongNode = SongNode(
+                    name=self.selectMenu.trackInfo[song]["name"], 
+                    uri=self.selectMenu.trackInfo[song]["uri"], 
+                    artists=self.selectMenu.trackInfo[song]["artists"]
+                )
 
-            newSongNode.queuedBy = interaction.user.name
-            currentNode.next = newSongNode
-            currentNode = currentNode.next
-
-        newSongNodeListTail = currentNode
-        songNodeList = view.shuffledSongList        
-        headNode = SongNode(name=None, uri=None, artists=None)
-
-        if(songNodeList is not None):    
-            headNode.next = songNodeList
-            currentNode = headNode
-
-            while(currentNode.next is not None and currentNode.next.queuedBy is not None):
+                newSongNode.queuedBy = interaction.user.name
+                currentNode.next = newSongNode
                 currentNode = currentNode.next
 
-            tempNode = currentNode.next    
-            currentNode.next = newSongNodeList.next
-            newSongNodeListTail.next = tempNode
-        
-        else:
-            headNode.next = newSongNodeList.next
+            newSongNodeListTail = currentNode
+            songNodeList = view.shuffledSongList        
+            headNode = SongNode(name=None, uri=None, artists=None)
 
-        view.shuffledSongList = headNode.next
+            if(songNodeList is not None):    
+                headNode.next = songNodeList
+                currentNode = headNode
+
+                while(currentNode.next is not None and currentNode.next.queuedBy is not None):
+                    currentNode = currentNode.next
+
+                tempNode = currentNode.next    
+                currentNode.next = newSongNodeList.next
+                newSongNodeListTail.next = tempNode
+            
+            else:
+                headNode.next = newSongNodeList.next
+
+            view.shuffledSongList = headNode.next
 
         await asyncio.sleep(1)
 
