@@ -191,6 +191,40 @@ class spotifyHostView(View):
         await interaction.followup.send(view=sessionView, ephemeral=True)
         return
     
+    @discord.ui.button(label="Invite by Role", custom_id="host_role_invite_btn", row=0)
+    async def inviteByRoleBtn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+
+        if(not await self.ownerCheck(messageId=interaction.message.id, userId=interaction.user.id)):
+            await interaction.followup.send("You are not allowed to use this command", ephemeral=True)
+            return
+        
+        roles = interaction.guild.roles
+        roleListArr = []
+        roleList = []
+
+        for role in roles:
+            roleList.append(discord.SelectOption(label=role.name, value=role.id, description=""))
+            if(len(roleList) == 24):
+                roleListArr.append(roleList)
+                roleList = []
+        if(len(roleList) != 0):
+            roleListArr.append(roleList)
+
+        listOfSelectMenus = []
+        for roleList in roleListArr:        
+            selectMenu = spotifyRoleInviteSelection(placeholder="Select Roles to Invite To Session", options=roleList, min=1, max=len(roleList))
+            listOfSelectMenus.append(selectMenu)
+        
+        sessionView = spotifyRoleInvite()
+        sessionView.selectedList = listOfSelectMenus[0]
+        sessionView.add_item(sessionView.selectedList)
+        sessionView.listOfSelectMenus = listOfSelectMenus
+        sessionView.selectedListIndex = 0
+
+        await interaction.followup.send(view=sessionView, ephemeral=True)
+        return    
+    
     @discord.ui.button(label="End Session", custom_id="host_end_session_btn", style=discord.ButtonStyle.red, row=0)
     async def endSession(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)        
@@ -564,6 +598,62 @@ class spotifyHostInviteSelection(Select):
 
         await interaction.followup.send("Done", ephemeral=True)
         return 
+    
+class spotifyRoleInvite(View):
+    def __init__(self):
+        super().__init__()
+
+        self.listOfSelectMenus: list[discord.SelectMenu] = None
+        self.selectedListIndex = 0
+        self.selectedList = None
+
+    @discord.ui.button(label="Previous", custom_id="previous_memberList_button")
+    async def previousMembers(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        message = await interaction.original_response()
+        self.selectedListIndex -= 1
+        if(self.selectedListIndex == -1):
+            self.selectedListIndex = len(self.listOfSelectMenus) - 1
+
+        self.remove_item(self.selectedList)
+        self.selectedList = self.listOfSelectMenus[self.selectedListIndex]
+        self.add_item(self.selectedList)
+        await message.edit(view=self)
+        return
+    
+    @discord.ui.button(label="Next", custom_id="next_memberList_button")
+    async def nextMembers(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        message = await interaction.original_response()
+        self.selectedListIndex = (self.selectedListIndex + 1) % len(self.listOfSelectMenus)
+
+        self.remove_item(self.selectedList)
+        self.selectedList = self.listOfSelectMenus[self.selectedListIndex]
+        self.add_item(self.selectedList)
+        await message.edit(view=self)
+        return    
+
+class spotifyRoleInviteSelection(Select):
+    def __init__(self, placeholder, options, min, max):
+        super().__init__(placeholder=placeholder, options=options, min_values=min, max_values=max)
+
+    async def callback(self, interaction: discord.Interaction):
+        
+        await interaction.response.defer(ephemeral=True)
+        for selection in self.values:                        
+            channel = interaction.channel
+            categoryChannel = channel.category
+            guild = interaction.guild            
+            try:
+                role = guild.get_role(int(selection))
+                await categoryChannel.set_permissions(target=role, read_messages=True, send_messages=True)            
+                await channel.set_permissions(target=role, read_messages=True, send_messages=True)
+            except Exception as e:
+                print(e, flush=True)
+                return
+
+        await interaction.followup.send("Done", ephemeral=True)
+        return     
     
 
 class playlistView(View):
