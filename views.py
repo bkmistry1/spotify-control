@@ -244,7 +244,7 @@ class spotifyHostView(View):
         await deleteOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
         return    
     
-    @discord.ui.button(custom_id="host_previous_button", emoji="⏮️", row=1)
+    @discord.ui.button(custom_id="host_previous_button", emoji="⏮️", row=2)
     async def previousTrack(self, interaction: discord.Interaction, button: discord.ui.Button):
         host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
         await previous(userId=host["userId"])        
@@ -252,7 +252,7 @@ class spotifyHostView(View):
         await interaction.response.edit_message(embed=embed)        
         return   
 
-    @discord.ui.button(custom_id="host_play_pause_button", emoji="⏯️", row=1)
+    @discord.ui.button(custom_id="host_play_pause_button", emoji="⏯️", row=2)
     async def playPauseTrack(self, interaction: discord.Interaction, button: discord.ui.Button):
         host = await findOneFromDb(colName="currentHostSessions", dict={"messageId": interaction.message.id})
         await playPause(userId=host["userId"])
@@ -260,7 +260,7 @@ class spotifyHostView(View):
         await interaction.response.edit_message(embed=embed)
         return
             
-    @discord.ui.button(custom_id="host_next_button", emoji="⏭️", row=1)
+    @discord.ui.button(custom_id="host_next_button", emoji="⏭️", row=2)
     async def nextTrack(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         message = await interaction.original_response()        
@@ -326,7 +326,7 @@ class spotifyHostView(View):
     #     await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
     #     return   
     
-    @discord.ui.button(label="Add Your Playlist To Queue", custom_id="host_add_your_playlist_to_queue_button", row=2)
+    @discord.ui.button(label="Add Your Playlist To Queue", custom_id="host_add_your_playlist_to_queue_button", row=1)
     async def addUserPlaylistToQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         message = await interaction.original_response()
@@ -365,13 +365,13 @@ class spotifyHostView(View):
         await interaction.followup.send(view=addToPlaylistView, ephemeral=True)
         return    
     
-    # @discord.ui.button(label="Add Playlist by Spotify Link To Queue", custom_id="host_add_playlist_link_to_queue_button", row=2)
+    # @discord.ui.button(label="Add Playlist by Spotify Link To Queue", custom_id="host_add_playlist_link_to_queue_button", row=3)
     # async def addPlaylistByLinkToQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
     #     spotifyPlaylistLinkModal = PlaylistSearchModal()
     #     await interaction.response.send_modal(spotifyPlaylistLinkModal)
     #     return    
     
-    @discord.ui.button(label="Clear Queue", custom_id="host_clear_queue_button", style=discord.ButtonStyle.red, row=2)
+    @discord.ui.button(label="Clear Queue", custom_id="host_clear_queue_button", style=discord.ButtonStyle.red, row=3)
     async def clearSpotifyQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
         # spotifyPlaylistLinkModal = PlaylistSearchModal()
         # await interaction.response.send_modal(spotifyPlaylistLinkModal)
@@ -389,7 +389,7 @@ class spotifyHostView(View):
         await message.delete()
         return       
 
-    @discord.ui.button(label="Add Song From Queue To Top", custom_id="host_add_song_to_top_of_queue_button", row=0)
+    @discord.ui.button(label="Add Song From Queue To Top", custom_id="host_add_song_to_top_of_queue_button", row=1)
     async def addSongToTopOfQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         message = await interaction.original_response()
@@ -447,7 +447,7 @@ class spotifyHostView(View):
         await interaction.followup.send(view=queueSongSelectView, ephemeral=True)
         return        
 
-    @discord.ui.button(custom_id="host_shuffle_songs_button", emoji="🔀", row=1)
+    @discord.ui.button(custom_id="host_shuffle_songs_button", emoji="🔀", row=2)
     async def shuffleTracks(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         message = await interaction.original_response()
@@ -482,7 +482,7 @@ class spotifyHostView(View):
         self.locked = False
         return    
 
-    @discord.ui.button(label="Add Song", custom_id="host_search_for_songbutton", style=discord.ButtonStyle.green, row=2)
+    @discord.ui.button(label="Add Song", custom_id="host_search_for_songbutton", style=discord.ButtonStyle.green, row=3)
     async def searchForSongToAddToQueue(self, interaction: discord.Interaction, button: discord.ui.Button):
         searchModal = SongSearchModal()
         try:
