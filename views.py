@@ -163,7 +163,8 @@ class spotifyHostView(View):
             await interaction.followup.send("You are not allowed to use this command", ephemeral=True)
             return
         
-        members: list[discord.Member] = interaction.guild.members
+        members = interaction.guild.members
+        memberListArr = []
         memberList = []
         currentMemberListInChannel = interaction.channel.members
         for member in members:
@@ -171,12 +172,21 @@ class spotifyHostView(View):
                 continue
             memberList.append(discord.SelectOption(label=member.name, value=member.id, description=""))
             if(len(memberList) == 24):
-                break
+                memberListArr.append(memberList)
+                memberList = []
+        if(len(memberList) != 0):
+            memberListArr.append(memberList)
 
-        selectMenu = spotifyHostInviteSelection(placeholder="Select Members to Invite To Session", options=memberList, min=1, max=len(memberList))
+        listOfSelectMenus = []
+        for memberList in memberListArr:        
+            selectMenu = spotifyHostInviteSelection(placeholder="Select Members to Invite To Session", options=memberList, min=1, max=len(memberList))
+            listOfSelectMenus.append(selectMenu)
         
         sessionView = spotifyHostSession()
-        sessionView.add_item(selectMenu)
+        sessionView.selectedList = listOfSelectMenus[0]
+        sessionView.add_item(sessionView.selectedList)
+        sessionView.listOfSelectMenus = listOfSelectMenus
+        sessionView.selectedListIndex = 0
 
         await interaction.followup.send(view=sessionView, ephemeral=True)
         return
@@ -502,6 +512,36 @@ class PlaylistSearchModal(Modal, title="Spotify Playlist Search Modal"):
 class spotifyHostSession(View):
     def __init__(self):
         super().__init__()
+
+        self.listOfSelectMenus: list[discord.SelectMenu] = None
+        self.selectedListIndex = 0
+        self.selectedList = None
+
+    @discord.ui.button(label="Previous", custom_id="previous_memberList_button")
+    async def previousMembers(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        message = await interaction.original_response()
+        self.selectedListIndex -= 1
+        if(self.selectedListIndex == -1):
+            self.selectedListIndex = len(self.listOfSelectMenus) - 1
+
+        self.remove_item(self.selectedList)
+        self.selectedList = self.listOfSelectMenus[self.selectedListIndex]
+        self.add_item(self.selectedList)
+        await message.edit(view=self)
+        return
+    
+    @discord.ui.button(label="Next", custom_id="next_memberList_button")
+    async def nextMembers(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        message = await interaction.original_response()
+        self.selectedListIndex = (self.selectedListIndex + 1) % len(self.listOfSelectMenus)
+
+        self.remove_item(self.selectedList)
+        self.selectedList = self.listOfSelectMenus[self.selectedListIndex]
+        self.add_item(self.selectedList)
+        await message.edit(view=self)
+        return    
 
 class spotifyHostInviteSelection(Select):
     def __init__(self, placeholder, options, min, max):
